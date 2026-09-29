@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TURA · Passenger details</title>
+  <link rel="stylesheet" href="screens.css">
+</head>
+<body>
+  <header class="gallery-header">
+    <a class="brand" href="index.html"><span class="brand-icon">T</span><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a>
+    <a class="button button-yellow" href="/">Open live app →</a>
+  </header>
+  <main class="screen-shell">
+    <div class="screen-toolbar">
+      <a class="breadcrumbs" href="index.html">← Screen gallery</a>
+      <span class="preview-label">HTML screen preview · sample only</span>
+    </div>
+    <div class="screen-card-layout">
+      <section class="screen-content">
+        <div class="preview-hero">
+          <span class="eyebrow">KAMPALA → GULU · SEAT 1A</span>
+          <h1>Passenger details</h1>
+          <p>Tell us who is travelling.</p>
+        </div>
+        <div class="preview-body">
+          <form data-preview-form data-next="payment.html">
+            <div class="field">
+              <label for="name">Full name</label>
+              <input id="name" value="Traveler" minlength="2" required>
+            </div>
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input id="phone" type="tel" placeholder="+256 700 123 456" pattern="\+?[0-9]{9,15}" required>
+            </div>
+            <div class="field">
+              <label for="email">Email (optional)</label>
+              <input id="email" type="email" placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="request">Special request (optional)</label>
+              <textarea id="request" placeholder="Accessibility or travel notes"></textarea>
+            </div>
+            <label class="ticket-row"><span>Travel insurance · UGX 2,000</span><input type="checkbox"></label>
+            <label class="ticket-row"><span>Extra luggage · UGX 5,000</span><input type="checkbox"></label>
+            <div class="summary">
+              <span>Seat <b>1A</b></span>
+              <span>Fare <b>UGX 40,000</b></span>
+              <span>Booking fee <b>UGX 500</b></span>
+            </div>
+            <div class="step-nav">
+              <a class="button button-light" href="seats.html">← Seat</a>
+              <button class="button button-yellow" type="submit">Continue →</button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <figure class="reference">
+        <img src="8th.jpg" alt="Supplied passenger details reference">
+        <figcaption>Original passenger-details design reference</figcaption>
+      </figure>
+    </div>
+  </main>
+  <script src="screens.js"></script>
+</body>
+</html>
