@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="600" y1="0" x2="600" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#74BCE8"/>
+      <stop offset=".58" stop-color="#D8E8D4"/>
+      <stop offset="1" stop-color="#557A4C"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="600" y1="200" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72A66B"/>
+      <stop offset="1" stop-color="#28563F"/>
+    </linearGradient>
+    <linearGradient id="coach" x1="530" y1="330" x2="895" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2469A3"/>
+      <stop offset="1" stop-color="#0B1F3A"/>
+    </linearGradient>
+    <linearGradient id="road" x1="600" y1="470" x2="680" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#48596A"/>
+      <stop offset="1" stop-color="#172638"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="600" y1="0" x2="600" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1F3A" stop-opacity=".02"/>
+      <stop offset=".58" stop-color="#0B1F3A" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#071528" stop-opacity=".72"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1200v680H0z"/>
+  <circle cx="935" cy="130" r="70" fill="#F8D67B" fill-opacity=".82"/>
+  <path d="M0 330 155 205l120 112 135-160 172 174 141-129 129 116 142-151 206 174v339H0V330Z" fill="#8DB6A0" fill-opacity=".78"/>
+  <path d="m0 408 160-94 135 118 175-121 168 97 167-130 137 124 126-77 132 112v243H0V408Z" fill="url(#hill)"/>
+  <path d="M0 496c167-53 282-31 416 21 133 51 248 50 374-9 147-68 267-64 410-9v181H0V496Z" fill="#426D46"/>
+  <path d="M0 558c177-32 316 1 455 40 141 40 267 35 383-11 139-55 242-49 362-7v100H0v-122Z" fill="#315B3E"/>
+  <path d="M514 680c88-100 115-156 107-218-7-55-61-86-88-134-20-35-18-69 14-108 61 47 101 83 127 128 37 66 18 114-9 162-24 42-36 100-31 170H514Z" fill="url(#road)"/>
+  <path d="M635 681c24-91 31-140 42-181 14-53 41-94 30-143-7-32-26-63-55-99" stroke="#F4F0D8" stroke-opacity=".83" stroke-width="7" stroke-dasharray="23 24"/>
+  <g transform="translate(565 338)">
+    <ellipse cx="182" cy="193" rx="190" ry="27" fill="#071528" fill-opacity=".34"/>
+    <path d="M43 54c0-21 15-38 36-42l192-24c19-2 37 9 44 27l34 91v52c0 17-13 30-30 30H67c-14 0-24-11-24-25V54Z" fill="url(#coach)"/>
+    <path d="m90 28 180-22c8-1 16 4 19 12l25 67H82V40c0-6 3-11 8-12Z" fill="#D8F0FA"/>
+    <path d="m108 38 62-8v45h-77V43c0-3 6-5 15-5Zm78-10 73-9 18 56h-91V28Z" fill="#183754"/>
+    <path d="M39 107h331v21H39z" fill="#F5C542"/>
+    <path d="M78 151h274v26H78c-15 0-27-12-27-27v-7h27v8Z" fill="#F8FAFC"/>
+    <circle cx="104" cy="184" r="31" fill="#101A26"/>
+    <circle cx="104" cy="184" r="16" fill="#AAB8C4"/>
+    <circle cx="307" cy="184" r="31" fill="#101A26"/>
+    <circle cx="307" cy="184" r="16" fill="#AAB8C4"/>
+    <rect x="303" y="111" width="18" height="10" rx="4" fill="#F8D67B"/>
+    <text x="180" y="148" fill="#0B1F3A" font-family="Arial,sans-serif" font-size="19" font-weight="700" text-anchor="middle">TURA</text>
+  </g>
+  <path fill="url(#shade)" d="M0 0h1200v680H0z"/>
+</svg>

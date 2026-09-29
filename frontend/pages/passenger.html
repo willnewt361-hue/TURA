@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Passenger details</title><link rel="stylesheet" href="/css/demo.css"></head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/pages/login.html">Demo sign in</a></nav></header>
+  <main class="wrap page">
+    <div class="section-head"><div><span class="eyebrow">04 · TRAVELER INFORMATION</span><h1>Passenger details</h1><p>Tell us who is travelling.</p></div><a class="button" href="/pages/seats.html">← Seat selection</a></div>
+    <div class="page-grid">
+      <section class="panel content-panel">
+        <form data-passenger-form>
+          <div class="field"><label for="name">Full name</label><input id="name" name="name" value="Demo Traveler" minlength="2" autocomplete="name" required></div>
+          <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" placeholder="+256 700 123 456" pattern="\+?[0-9]{9,15}" autocomplete="tel" required><small>Use an international format, e.g. +256700123456.</small></div>
+          <div class="field"><label for="email">Email (optional)</label><input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="summary"><div class="summary-row"><span>Route</span><strong>Kampala → Gulu</strong></div><div class="summary-row"><span>Seat</span><strong data-selected-seat>1A</strong></div><div class="summary-row"><span>Fare</span><strong>UGX 40,000</strong></div></div>
+          <p class="notice">This form is a visual preview and does not send passenger details to the backend.</p>
+          <button class="button button-accent" type="submit">Continue to payment preview →</button>
+        </form>
+        <div class="journey-nav"><a href="/pages/seats.html">← Seat selection</a><a href="/pages/payment.html">Payment preview →</a></div>
+      </section>
+      <figure class="reference"><img src="/screens/8th.jpg" alt="Supplied TURA passenger-details reference"><figcaption>Supplied passenger-details design reference</figcaption></figure>
+    </div>
+  </main>
+  <script src="/js/demo.js"></script>
+</body></html>

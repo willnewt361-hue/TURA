@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Select a seat</title><link rel="stylesheet" href="/css/demo.css"></head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/pages/login.html">Demo sign in</a></nav></header>
+  <main class="wrap page">
+    <div class="section-head"><div><span class="eyebrow">03 · MODERN COAST · UGX 40,000</span><h1>Select your seat</h1><p>Kampala → Gulu · 08:00 AM · 1 passenger</p></div><a class="button" href="/pages/buses.html">← Buses</a></div>
+    <div class="page-grid">
+      <section class="panel content-panel">
+        <p class="muted">Choose one available seat. Grey seats are shown as occupied in this sample.</p>
+        <div class="seat-grid" aria-label="Sample coach seat map">
+          <button class="seat" type="button" data-seat aria-pressed="false">1A</button><button class="seat" type="button" data-seat aria-pressed="false">1B</button><button class="seat" type="button" data-seat aria-pressed="false">1C</button><button class="seat" type="button" disabled aria-label="1D occupied">1D</button>
+          <button class="seat" type="button" data-seat aria-pressed="false">2A</button><button class="seat" type="button" disabled aria-label="2B occupied">2B</button><button class="seat" type="button" data-seat aria-pressed="false">2C</button><button class="seat" type="button" data-seat aria-pressed="false">2D</button>
+          <button class="seat" type="button" disabled aria-label="3A occupied">3A</button><button class="seat" type="button" disabled aria-label="3B occupied">3B</button><button class="seat" type="button" data-seat aria-pressed="false">3C</button><button class="seat" type="button" disabled aria-label="3D occupied">3D</button>
+          <button class="seat" type="button" data-seat aria-pressed="false">4A</button><button class="seat" type="button" data-seat aria-pressed="false">4B</button><button class="seat" type="button" disabled aria-label="4C occupied">4C</button><button class="seat" type="button" data-seat aria-pressed="false">4D</button>
+        </div>
+        <p class="status" role="status" aria-live="polite" data-seat-status>Choose an available seat to continue.</p>
+        <div class="summary"><div class="summary-row"><span>Selected seat</span><strong data-selected-seat>Not selected</strong></div><div class="summary-row"><span>Sample fare</span><strong>UGX 40,000</strong></div></div>
+        <p class="notice">Sample-only seat map. It does not reserve or lock inventory. TURA checks real availability in the connected app.</p>
+        <div class="journey-nav"><a href="/pages/buses.html">← Buses</a><a href="/pages/passenger.html" data-seat-next>Passenger details →</a></div>
+      </section>
+      <figure class="reference"><img src="/screens/7th.jpg" alt="Supplied TURA seat-selection reference"><figcaption>Supplied seat-map design reference</figcaption></figure>
+    </div>
+  </main>
+  <script src="/js/demo.js"></script>
+</body></html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TURA | Demo sign in</title>
+  <link rel="stylesheet" href="/css/demo.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button" href="/">Home</a>
+    </nav>
+  </header>
+  <main class="login-wrap">
+    <section class="login-card" aria-labelledby="login-title">
+      <span class="eyebrow">DEMO ACCESS</span>
+      <h1 id="login-title">Welcome to TURA</h1>
+      <p class="muted">Sign in to the connected app. The demo customer details are filled in to make a walkthrough quick.</p>
+      <form data-demo-login>
+        <div class="field"><label for="phone">Demo phone number</label><input id="phone" name="phone" value="+256700000001" autocomplete="username" required></div>
+        <div class="field"><label for="password">Demo password</label><input id="password" name="password" type="password" value="demo1234" autocomplete="current-password" required></div>
+        <button class="button button-primary" type="submit">Sign in and open TURA</button>
+      </form>
+      <button class="button button-accent" type="button" data-demo-role="customer">Use demo customer account</button>
+      <div class="journey-nav" aria-label="Other demo roles">
+        <button type="button" data-demo-role="driver">Demo driver</button>
+        <button type="button" data-demo-role="operator">Demo operator</button>
+      </div>
+      <p class="status" role="status" aria-live="polite" data-login-status></p>
+      <p class="notice">Public demo credentials are for fake data only. The demo checkout does not charge a card or mobile wallet.</p>
+      <p class="muted">If login cannot connect, start the server from the project folder with <code>python main.py</code>.</p>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/demo.js"></script>
+</body>
+</html>

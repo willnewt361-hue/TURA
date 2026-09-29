@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="description" content="Preview the TURA Uganda bus travel demo and launch the connected booking app.">
+  <title>TURA | One Tap. One Journey.</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/demo.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button" href="/pages/login.html">Demo sign in</a>
+      <a class="button button-primary" href="/app/">Open live app <span aria-hidden="true">→</span></a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">UGANDA BUS TRAVEL · V1 DEMO</span>
+        <h1>One journey.<br>Every step, simpler.</h1>
+        <p>Explore the TURA passenger journey, preview the screens built from the supplied references, or sign in to try the connected app.</p>
+        <div class="hero-actions">
+          <a class="button button-accent" href="/pages/login.html">Try the demo sign in →</a>
+          <a class="button" href="/app/" style="background:#ffffff;color:#102644">Open the connected app</a>
+        </div>
+        <p class="muted">Gallery journeys are illustrative. Booking, seats, tickets and account actions in the connected app use the backend.</p>
+      </div>
+      <img src="/screens/Master.jpg" alt="TURA journey screens and bus design reference">
+    </section>
+
+    <section aria-labelledby="journey-title">
+      <div class="section-head">
+        <div><span class="eyebrow">START HERE</span><h2 id="journey-title">Follow the customer journey</h2><p>Open each responsive HTML page in order.</p></div>
+        <a class="button" href="/pages/explore.html">Explore routes</a>
+      </div>
+      <div class="steps">
+        <a class="step-card" href="/pages/splash.html"><span class="number">00</span><h3>Welcome</h3><p>Start the TURA demo experience.</p></a>
+        <a class="step-card" href="/pages/home.html"><span class="number">01</span><h3>Home & search</h3><p>Choose where and when to travel.</p></a>
+        <a class="step-card" href="/pages/buses.html"><span class="number">02</span><h3>Available buses</h3><p>Compare sample departures and fares.</p></a>
+        <a class="step-card" href="/pages/seats.html"><span class="number">03</span><h3>Select a seat</h3><p>Try the interactive seat map.</p></a>
+        <a class="step-card" href="/pages/passenger.html"><span class="number">04</span><h3>Passenger details</h3><p>Review the demo booking form.</p></a>
+        <a class="step-card" href="/pages/payment.html"><span class="number">05</span><h3>Payment preview</h3><p>See the V1 mock checkout boundary.</p></a>
+        <a class="step-card" href="/pages/ticket.html"><span class="number">06</span><h3>Ticket preview</h3><p>View the sample ticket layout.</p></a>
+        <a class="step-card" href="/pages/tracking.html"><span class="number">07</span><h3>Trip tracking</h3><p>Preview trip progress and status.</p></a>
+        <a class="step-card" href="/pages/tickets.html"><span class="number">08</span><h3>My tickets</h3><p>Review the customer ticket list.</p></a>
+        <a class="step-card" href="/pages/explore.html"><span class="number">09</span><h3>Explore</h3><p>Filter sample destinations and routes.</p></a>
+      </div>
+    </section>
+    <p class="notice" style="margin:24px 0">Demo limitations: no real payment is taken; the preview QR is not valid for boarding; tracking is illustrative. For real bookings use the connected app and its server-verified inventory.</p>
+    <footer class="footer">TURA V1 · HTML, CSS, JavaScript and FastAPI · <a href="/screens/">Open supplied design gallery</a></footer>
+  </main>
+  <script src="/js/demo.js"></script>
+</body>
+</html>

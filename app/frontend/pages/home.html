@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Search a journey</title><link rel="stylesheet" href="/css/demo.css"></head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/pages/login.html">Demo sign in</a></nav></header>
+  <main class="wrap page">
+    <div class="section-head"><div><span class="eyebrow">01 · YOUR NEXT STOP</span><h1>Plan your journey</h1><p>This screen is a sample preview. Live search is in the connected app.</p></div><a class="button" href="/">Gallery home</a></div>
+    <div class="page-grid">
+      <section class="panel content-panel">
+        <h2>Where are you going?</h2>
+        <form action="/pages/buses.html" method="get">
+          <div class="field"><label for="from">From</label><select id="from" name="from"><option>Kampala</option><option>Mbarara</option><option>Jinja</option><option>Gulu</option></select></div>
+          <div class="field"><label for="to">To</label><select id="to" name="to"><option>Gulu</option><option>Mbarara</option><option>Jinja</option><option>Mbale</option></select></div>
+          <div class="field"><label for="date">Travel date</label><input id="date" name="date" type="date" data-default-today required></div>
+          <div class="field"><label for="passengers">Passengers</label><select id="passengers" name="passengers"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+          <button class="button button-accent" type="submit">See sample buses →</button>
+        </form>
+        <p class="notice">Sample routes are for demonstration only. Search actual trips and live seats in TURA.</p>
+        <div class="journey-nav"><a href="/pages/index.html">Gallery</a><a href="/pages/buses.html">Buses →</a><a href="/app/">Connected app</a></div>
+      </section>
+      <figure class="reference"><img src="/screens/Home%20screen.jpg" alt="Supplied TURA home-screen reference"><figcaption>Supplied home-screen design reference</figcaption></figure>
+    </div>
+  </main>
+  <script src="/js/demo.js"></script>
+</body></html>

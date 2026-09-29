@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: tura-demo
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /api/health
+    disk:
+      name: tura-demo-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: TURA_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_INSTANCE
+        value: "true"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SESSION_COOKIE_SAMESITE
+        value: lax
+      - key: DATABASE_URL
+        value: sqlite:////var/data/tura.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TICKET_HMAC_SECRET
+        generateValue: true
+
+  - type: web
+    name: tura-live
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /api/health
+    disk:
+      name: tura-live-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: TURA_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "false"
+      - key: DEMO_INSTANCE
+        value: "false"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SESSION_COOKIE_SAMESITE
+        value: lax
+      - key: DATABASE_URL
+        value: sqlite:////var/data/tura.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TICKET_HMAC_SECRET
+        generateValue: true

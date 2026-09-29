@@ -1,0 +1,280 @@
+TURA
+Offline-First Bus Travel WebSocket App
+Build blueprint • agent prompts • architecture • features • testing plan
+Reference UI supplied for the TURA concept.
+1. Executive brief
+TURA is an offline-first bus-booking and operations system. The first version should run locally without Mobile Money APIs, while keeping a clean integration boundary so MTN/Airtel payments can be connected later. The browser UI is HTML5/CSS/JavaScript, the backend is Python, and WebSockets carry live seat, trip, tracking, driver, ticket and SOS events.
+The practical target for today is a polished working prototype, not a production payment deployment.
+Area
+Today’s prototype
+Later integration
+Customer
+Search → seat → mock payment → QR ticket → trip tracking
+Real payment providers
+Operator
+Trips, fleet/routes, revenue, settlements, charts
+Bank/MoMo settlement feeds
+Driver/conductor
+QR scan/validate, passenger list, trip status, SOS
+Device camera + live dispatch
+Offline
+SQLite/local cache + service worker + signed QR
+Sync server / multi-device conflict handling
+Language
+English + Luganda-ready labels
+Full translated content
+2. Non-negotiable product rules
+Do not hard-code payment-provider logic into booking logic. Use a PaymentProvider interface and a mock provider now.
+Seats are server-authoritative when connected; offline reservations use short-lived local locks and sync with conflict detection.
+Tickets must be tamper-evident. Use a signed payload or HMAC in the prototype; never trust QR text alone.
+Every important mutation gets an event/audit record: booking, payment, ticket issue, validation, luggage, SOS and settlement.
+Never expose secrets in frontend JavaScript, QR codes, or logs.
+Use configuration for fares, luggage price, insurance price, commissions and fees. The UI must calculate from config.
+Make all payment and booking operations idempotent (safe to retry without creating duplicates).
+The app must remain usable when the network disappears. Show a clear Offline/Online indicator.
+3. Recommended stack
+Layer
+Choice
+Reason
+Frontend
+HTML5 + CSS + vanilla JS
+Fast, offline-friendly, no heavy build system required
+Backend
+FastAPI
+Excellent WebSocket support, typed APIs, async-friendly
+Realtime
+FastAPI WebSockets
+Seat updates, tracking, SOS, driver alerts
+Database
+SQLite
+Perfect for a local prototype; easy backup
+ORM/data
+SQLModel or SQLAlchemy
+Clean models and migrations later
+Validation
+Pydantic
+Typed request/event validation
+QR
+Python QR library + browser scanner
+Ticket/luggage validation
+Maps
+Offline SVG/map mock first
+Avoid map API dependency today
+Charts
+Plain SVG/Canvas
+No network dependency
+Offline
+Service Worker + Cache API + IndexedDB
+PWA-style offline behavior
+Testing
+pytest + WebSocket/API tests
+Protect business rules
+Recommendation: choose FastAPI rather than Flask for this project because WebSockets are a first-class requirement. Flask can work with an extension, but FastAPI keeps the realtime architecture cleaner.
+7
+. Suggested project structure
+tura/
+├── app/
+│   ├── main.py
+│   ├── config.py
+│   ├── db/
+│   │   ├── session.py
+│   │   └── models.py
+│   ├── api/
+│   │   ├── auth.py
+│   │   ├── bookings.py
+│   │   ├── trips.py
+│   │   ├── payments.py
+│   │   ├── tickets.py
+│   │   ├── luggage.py
+│   │   ├── sos.py
+│   │   └── reports.py
+│   ├── realtime/
+│   │   ├── manager.py
+│   │   └── events.py
+│   ├── services/
+│   │   ├── booking_service.py
+│   │   ├── payment_service.py
+│   │   ├── ticket_service.py
+│   │   ├── luggage_service.py
+│   │   ├── tracking_service.py
+│   │   └── sos_service.py
+│   └── security/
+│       └── signing.py
+├── frontend/
+│   ├── index.html
+│   ├── assets/
+│   ├── css/
+│   ├── js/
+│   ├── pages/
+│   └── sw.js
+├── tests/
+├── data/
+├── scripts/
+├── .env.example
+├── requirements.txt
+└── README.md
+9. Core data model
+Entity
+Important fields
+User
+id, role, name, phone, language, status
+Bus
+id, plate, operator, capacity, status
+Route
+id, origin, destination, stops, distance
+Trip
+id, bus_id, route_id, departure, status, active
+Seat
+id, bus_id, label, row, column, status
+Booking
+id, user_id, trip_id, seat_id, status, idempotency_key
+Payment
+id, booking_id, provider, amount, status, provider_ref
+Ticket
+id, booking_id, signed_payload, issued_at, expires_at, status
+Luggage
+id, booking_id, tag_id, fee, status
+TrackingPoint
+id, trip_id, lat/lng or map position, timestamp
+SOS
+id, user_id, trip_id, type, reason, location, status
+AuditEvent
+id, actor, event_type, entity_id, timestamp, metadata
+Settlement
+id, trip_id, gross, fees, net, provider, status
+10. WebSocket design
+Use WebSockets for state that users need to see change immediately. REST can remain the source for normal CRUD operations.
+Event
+Sender
+Consumers
+Purpose
+seat.locked
+Booking service
+Customer/operator
+Temporarily reserve a seat
+seat.released
+Booking service
+Customer/operator
+Release expired/failed lock
+ticket.validated
+Driver app
+Operator
+Record successful validation
+trip.position
+Driver/tracker
+Customer/operator
+Update vehicle position
+trip.eta
+Tracking service
+Customer
+Show estimated arrival
+sos.created
+Customer
+Driver/operator
+Create internal emergency alert
+sos.acknowledged
+Driver/operator
+Customer/operator
+Confirm alert receipt
+luggage.scanned
+Driver
+Operator
+Track luggage handoff/lookup
+sync.completed
+Sync service
+Device
+Report offline queue synchronization
+11. Peak features
+ for
+ adding
+ also
+Offline-first PWA: 
+App shell loads without internet; queued actions sync later.
+Signed QR tickets: 
+Stops simple screenshot/text forgery. Add expiry and cancellation checks.
+Offline validation cache: 
+Driver can validate recently issued tickets using a local signed-ticket cache.
+Seat conflict protection: 
+Short seat locks plus WebSocket updates prevent two customers taking the same seat.
+Idempotent payments: 
+Retries do not create duplicate tickets or charges.
+Luggage chain of custody: 
+Every scan changes status: registered → loaded → received/claimed/lost.
+Trip replay: 
+Operator can replay tracking points for a completed trip.
+Operations audit log: 
+Who did what, when, and to which booking/ticket.
+Configurable fee engine: 
+Fare, luggage, insurance and commission values can change without rewriting business logic.
+USSD-ready service boundary: 
+Later add USSD as another client of the same booking/payment services.
+Luganda-ready i18n: 
+Keep labels in translation dictionaries rather than hard-coding text.
+Feature flags: 
+Turn experimental features on/off without deleting code.
+Health dashboard: 
+Show database, WebSocket, sync queue and device status.
+Backup/restore: 
+One-click SQLite backup for the prototype.
+12
+. Offline architecture
+Service Worker caches the application shell.
+IndexedDB stores the user's local ticket cache, trip cache, seat state snapshot, and pending sync queue.
+SQLite remains the local backend database when the Python server is running.
+Every queued mutation gets a client_operation_id so retries are idempotent.
+When connectivity returns, sync operations are sent in order where ordering matters.
+Server returns accepted/conflict/rejected for each queued operation.
+Never silently overwrite a newer booking/seat state during sync.
+Show users exactly whether data is live, cached, pending, or stale.
+13
+. QR security model
+A prototype QR should carry a compact signed token, not sensitive personal information. A practical payload is ticket_id + trip_id + seat_id + issued_at + expires_at + version + signature. The driver app verifies the signature locally using a verification key or appropriate shared secret design. The UI then looks up non-sensitive details from the local cache/database. For production, move toward asymmetric signing so verification keys can be distributed without giving every device the ability to issue tickets.
+14
+. SOS model
+Mode
+Prototype behavior
+Production boundary
+Private operational SOS
+Create alert visible to TURA control/driver roles; store reason and location.
+Integrate approved emergency/authority channels only after legal/technical validation.
+Broader passenger alert
+Notify configured TURA users/devices, but mark police notification as disabled.
+Connect only to approved notification infrastructure.
+Do not simulate a real police dispatch as if it happened. The prototype should clearly say 'Demo/Local alert'.
+15
+. Test checklist before calling it done
+Customer can search a route and see available trips.
+Customer can select a seat and see the seat ID.
+Second customer cannot successfully book the same seat.
+Mock payment success creates exactly one booking and one ticket.
+Retrying the same operation does not duplicate the booking.
+Expired ticket is rejected and expiry is displayed.
+Valid ticket is accepted offline when the required verification/cache data exists.
+Invalid signature is rejected.
+Luggage tag can be registered and scanned.
+Trip tracking events appear without page refresh.
+SOS creates the correct internal event type and reason.
+Offline mode is visible and queued changes synchronize after reconnection.
+Operator dashboard updates after booking/payment/ticket events.
+Application survives a WebSocket disconnect and reconnects cleanly.
+No secrets appear in frontend source or QR payload.
+16
+. Build order for today
+1. Create FastAPI project and SQLite database.
+2. Create role model and seed demo users.
+3. Create Bus, Route, Trip, Seat and Booking models.
+4. Implement search and seat-selection REST endpoints.
+5. Implement WebSocket connection manager and seat events.
+6. Implement mock payment provider + idempotency.
+7. Implement ticket signing, QR generation and validation.
+8. Build customer screens with the TURA dark visual system.
+9. Build operator dashboard and charts.
+10. Build driver/conductor validation and trip screens.
+11. Add service worker, IndexedDB cache and offline queue.
+12. Add tracking simulator.
+13. Add SOS and luggage events.
+14. Run tests, then do a complete manual flow.
+17
+. Definition of done
+The prototype is done when a user can complete a full local journey from search to seat selection to mock payment to QR ticket, a driver can validate that ticket, the operator can see the trip/revenue state, and tracking/SOS/luggage events can move through WebSockets — including a controlled offline demonstration.
+TURA — One Tap, One Journey.
