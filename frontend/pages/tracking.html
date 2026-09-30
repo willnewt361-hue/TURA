@@ -1,18 +1,54 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Trip tracking preview</title><link rel="stylesheet" href="/css/demo.css"></head>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <title>TURA | Trip tracking</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/demo.css">
+  <link rel="stylesheet" href="/css/map.css">
+</head>
 <body>
-  <header class="topbar"><a class="brand" href="/"><img src="/assets/logo.svg" alt="TURA — One Tap. One Journey."><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/app/">Connected app</a></nav></header>
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt="TURA — One Tap. One Journey."></a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button" href="/pages/tickets.html">My tickets</a>
+      <a class="button button-primary" href="/app/">Connected app</a>
+    </nav>
+  </header>
   <main class="wrap page">
-    <div class="section-head"><div><span class="eyebrow">07 · JOURNEY STATUS</span><h1>Trip tracking</h1><p>Kampala → Gulu · Modern Coast</p></div><a class="button" href="/pages/ticket.html">← Ticket preview</a></div>
-    <div class="page-grid">
-      <section class="panel content-panel">
-        <div class="panel" style="background:linear-gradient(135deg,#e7f3ff,#d6e9f8);color:#173b66;text-align:center;padding:36px 18px"><span style="font-size:3rem" aria-hidden="true">🚌</span><h2>On the way to Gulu</h2><p>Illustrative route progress · Near Masindi</p></div>
-        <div class="summary"><div class="summary-row"><span>Departure</span><strong>08:00 AM · Kampala</strong></div><div class="summary-row"><span>Estimated arrival</span><strong>03:00 PM · Gulu</strong></div><div class="summary-row"><span>Status</span><strong>On route · sample</strong></div></div>
-        <p class="notice">This is not GPS. The live app uses the V1 trip tracker simulator; it does not show a real vehicle location.</p>
-        <div class="journey-nav"><a href="/pages/tickets.html">My tickets →</a><a href="/app/#/tracking">Open connected tracking</a></div>
-      </section>
-      <figure class="reference"><img src="/screens/4th.jpg" alt="Supplied TURA trip-tracking reference"><figcaption>Supplied tracking design reference</figcaption></figure>
+    <div class="section-head">
+      <div><span class="eyebrow">07 · JOURNEY STATUS</span><h1>Trip tracking</h1><p>Kampala → Gulu · Modern Coast</p></div>
+      <a class="button" href="/pages/ticket.html">← Ticket preview</a>
     </div>
+    <section class="panel content-panel" data-tura-map data-origin="Kampala, Uganda" data-destination="Gulu, Uganda">
+      <div class="map-stats" aria-label="Journey details">
+        <div><span>Route</span><strong data-map-route>Kampala → Gulu</strong></div>
+        <div><span>Departure</span><strong>08:00 AM · Kampala</strong></div>
+        <div><span>Operator</span><strong>Modern Coast</strong></div>
+        <div><span>Scheduled arrival</span><strong>03:00 PM · Gulu</strong></div>
+        <div><span>Road distance</span><strong data-map-distance>—</strong></div>
+        <div><span>Estimated drive</span><strong data-map-eta>—</strong></div>
+        <div><span>Journey status</span><strong>On route · demo</strong></div>
+      </div>
+      <section class="track-map-section" aria-labelledby="tracking-map-title">
+        <h2 id="tracking-map-title">Route map</h2>
+        <div class="map-frame">
+          <div class="tura-map" data-map-canvas role="region" aria-label="Map showing the Kampala to Gulu bus route"></div>
+          <div class="map-message" data-map-status role="status" aria-live="polite">Loading route map…</div>
+        </div>
+        <p class="map-disclaimer">Route line and drive estimate come from Google Maps. This sample screen does not show the coach’s live GPS location; use connected tracking for the backend’s simulated trip updates.</p>
+      </section>
+      <div class="journey-nav">
+        <a href="/pages/map-interface.html?from=Kampala%2C%20Uganda&amp;to=Gulu%2C%20Uganda">Plan another route →</a>
+        <a href="/pages/tickets.html">My tickets →</a>
+        <a href="/app/#/tracking">Open connected tracking</a>
+      </div>
+    </section>
   </main>
   <script src="/js/demo.js"></script>
-</body></html>
+  <script src="/js/map.js"></script>
+</body>
+</html>

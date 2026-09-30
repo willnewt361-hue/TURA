@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="description" content="Plan a TURA bus route and view trip distance and estimated drive time.">
+  <title>TURA | Route map</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/demo.css">
+  <link rel="stylesheet" href="/css/map.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/logo.svg" alt="TURA — One Tap. One Journey."></a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button" href="/pages/tracking.html">Trip tracking</a>
+      <a class="button button-primary" href="/app/">Connected app</a>
+    </nav>
+  </header>
+  <main class="wrap map-page">
+    <section class="map-heading">
+      <div>
+        <span class="eyebrow">TURA JOURNEY MAP</span>
+        <h1>Plan your route</h1>
+        <p>Check the route, estimated road distance and drive time for your bus journey.</p>
+      </div>
+      <a class="map-back" href="/">← Home</a>
+    </section>
+    <section class="map-overview" data-tura-map data-origin="Kampala, Uganda" data-destination="Gulu, Uganda">
+      <form class="map-controls panel" data-map-form aria-label="Route planner">
+        <div class="field">
+          <label for="map-origin">From</label>
+          <input id="map-origin" data-map-origin value="Kampala, Uganda" autocomplete="off" maxlength="160">
+        </div>
+        <div class="field">
+          <label for="map-destination">To</label>
+          <input id="map-destination" data-map-destination value="Gulu, Uganda" autocomplete="off" maxlength="160">
+        </div>
+        <button class="button button-primary" type="submit" data-map-submit>Show route</button>
+        <button class="button" type="button" data-map-location>Use my location</button>
+      </form>
+      <div class="map-stats" aria-label="Route information">
+        <div><span>Route</span><strong data-map-route>Kampala → Gulu</strong></div>
+        <div><span>Road distance</span><strong data-map-distance>—</strong></div>
+        <div><span>Estimated drive</span><strong data-map-eta>—</strong></div>
+        <div><span>Estimated arrival</span><strong data-map-arrival>—</strong></div>
+      </div>
+      <div class="map-frame">
+        <div class="tura-map" data-map-canvas role="region" aria-label="Map showing the selected bus route"></div>
+        <div class="map-message" data-map-status role="status" aria-live="polite">Loading route map…</div>
+      </div>
+      <p class="map-disclaimer">Route and drive-time estimates are provided by Google Maps and can differ from the operator’s bus schedule. Estimated arrival is based on current time plus the road-drive estimate. This map does not represent a live bus GPS position.</p>
+    </section>
+  </main>
+  <script src="/js/demo.js"></script>
+  <script src="/js/map.js"></script>
+</body>
+</html>

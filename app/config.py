@@ -2,12 +2,38 @@
 
 from __future__ import annotations
 
+import os
 import secrets
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
+from dotenv import dotenv_values
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+
+
+@lru_cache(maxsize=8)
+def _maps_key_from_env_file(path: str, modified_ns: int) -> str:
+    value = dotenv_values(path).get("GOOGLE_MAPS_API_KEY")
+    return str(value or "").strip()
+
+
+def get_google_maps_api_key(env_file: Path | None = None) -> str:
+    environment_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if environment_key is not None:
+        return environment_key.strip()
+
+    settings = get_settings()
+    env_file = env_file or PROJECT_ENV_FILE
+    try:
+        modified_ns = env_file.stat().st_mtime_ns
+    except OSError:
+        return settings.google_maps_api_key.strip()
+    return _maps_key_from_env_file(str(env_file.resolve()), modified_ns)
+
 
 
 class Settings(BaseSettings):
@@ -22,6 +48,7 @@ class Settings(BaseSettings):
     ticket_hmac_secret: str = ""
     database_url: str = "sqlite:///./data/tura.db"
     cors_origins: str = ""
+    google_maps_api_key: str = ""
     session_cookie_secure: bool = False
     session_cookie_samesite: str = "lax"
     rate_limit_per_minute: int = 60

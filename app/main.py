@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 from app import __version__
 from app.api import auth, bookings, luggage, operations, payments, reports, sos, tickets, trips
 from app.api.deps import COOKIE_NAME, decode_token
-from app.config import get_settings
+from app.config import get_google_maps_api_key, get_settings
 from app.db.models import Booking, Trip, User
 from app.db.seed import seed_if_empty
 from app.db.session import SessionLocal, init_db
@@ -190,6 +190,7 @@ def create_app() -> FastAPI:
             "currency": current.currency,
             "demo_mode": current.demo_mode,
             "seat_lock_seconds": current.seat_lock_seconds,
+            "google_maps_api_key": get_google_maps_api_key(),
         }
 
     @application.websocket("/ws")

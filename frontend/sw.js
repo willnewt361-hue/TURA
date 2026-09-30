@@ -1,12 +1,16 @@
 /* TURA service worker — app shell cache for offline-first */
-const CACHE = 'tura-shell-v7';
+const CACHE = 'tura-shell-v9';
 const SHELL = [
   '/',
   '/app/',
   '/pages/index.html',
   '/pages/login.html',
+  '/pages/map-interface.html',
+  '/pages/tracking.html',
   '/css/demo.css',
+  '/css/map.css',
   '/js/demo.js',
+  '/js/map.js',
   '/js/theme.js',
   '/css/tura.css',
   '/js/api.js',

@@ -17,7 +17,7 @@ from starlette.websockets import WebSocketDisconnect
 from pydantic import ValidationError
 
 # Reset settings cache
-from app.config import Settings, get_settings
+from app.config import Settings, get_google_maps_api_key, get_settings
 
 get_settings.cache_clear()
 
@@ -26,6 +26,7 @@ from app.db.models import AuditEvent, Base, Booking, Trip
 from app.db.seed import seed_if_empty
 from app.main import app
 from app.realtime.manager import manager
+from app.security.middleware import _content_security_policy
 from app.security.signing import sign_ticket_payload, verify_ticket_token
 
 
@@ -44,6 +45,66 @@ def _csrf(client: TestClient) -> str:
     r = client.get("/api/auth/csrf")
     assert r.status_code == 200
     return r.json()["csrf"]
+
+
+def test_public_config_exposes_optional_maps_browser_key(client):
+    response = client.get("/api/config")
+    assert response.status_code == 200
+    assert isinstance(response.json()["google_maps_api_key"], str)
+
+
+def test_route_map_pages_and_assets_are_served(client):
+    for path in (
+        "/pages/map-interface.html",
+        "/pages/tracking.html",
+        "/css/map.css",
+        "/js/map.js",
+    ):
+        response = client.get(path)
+        assert response.status_code == 200, path
+    page = client.get("/pages/map-interface.html").text
+    assert "TURA | Route map" in page
+    assert "API_HERE" not in page
+    assert "Mengo Senior School" not in page
+
+
+def test_map_widget_uses_routes_library_instead_of_legacy_directions(client):
+    source = client.get("/js/map.js")
+    assert source.status_code == 200
+    assert "importLibrary('routes')" in source.text
+    assert "Route.computeRoutes" in source.text
+    assert "DirectionsService" not in source.text
+    assert "DirectionsRenderer" not in source.text
+
+
+def test_maps_csp_sources_are_enabled_only_when_maps_key_is_configured():
+    without_maps = _content_security_policy(False)
+    with_maps = _content_security_policy(True)
+    assert "googleapis.com" not in without_maps
+    assert "https://*.googleapis.com" in with_maps
+    assert "'unsafe-eval'" in with_maps
+    assert "https://*.google.com" in with_maps
+    assert "frame-src 'self'" in without_maps
+    assert "frame-src 'self' https://*.google.com" in with_maps
+
+
+def test_local_maps_key_reload_uses_updated_env_file(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    monkeypatch.delenv("GOOGLE_MAPS_API_KEY", raising=False)
+    env_file.write_text("GOOGLE_MAPS_API_KEY=first-local-key\n", encoding="utf-8")
+    assert get_google_maps_api_key(env_file) == "first-local-key"
+
+    env_file.write_text("GOOGLE_MAPS_API_KEY=updated-local-key\n", encoding="utf-8")
+    stat = env_file.stat()
+    os.utime(env_file, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000_000))
+    assert get_google_maps_api_key(env_file) == "updated-local-key"
+
+
+def test_maps_key_enables_google_sources_in_response_csp(client, monkeypatch):
+    monkeypatch.setenv("GOOGLE_MAPS_API_KEY", "test-browser-key")
+    response = client.get("/pages/map-interface.html")
+    assert response.status_code == 200
+    assert "https://*.googleapis.com" in response.headers["Content-Security-Policy"]
 
 
 def _headers(client: TestClient) -> dict:

@@ -405,22 +405,25 @@
     return `${statusBar()}${topbar('Live Tracking')}
       <main class="page">
         <div class="tracking-intro"><span class="eyebrow">${!state.online || state.offlineSession ? 'SAVED ITINERARY' : 'TRIP STATUS'}</span><h1>${state.selectedTrip ? `${escapeHtml(state.selectedTrip.origin)} <span>→</span> ${escapeHtml(state.selectedTrip.destination)}` : 'Your journey'}</h1><p>${state.selectedTrip ? `${escapeHtml(state.selectedTrip.operator)} · ${fmtDate(state.selectedTrip.departure)}` : 'Your saved and active trips appear here.'}</p></div>
-        <div class="map-stage">
-          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="road" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#0B1F3A"/><stop offset="100%" stop-color="#3B6EA5"/>
-              </linearGradient>
-            </defs>
-            <path d="M40 240 C 100 200, 140 160, 180 140 S 280 80, 360 60" fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round" opacity=".8"/>
-            <path d="M40 240 C 100 200, 140 160, 180 140 S 280 80, 360 60" fill="none" stroke="url(#road)" stroke-width="7" stroke-linecap="round"/>
-            <circle cx="40" cy="240" r="9" fill="#fff" stroke="#0B1F3A" stroke-width="4"/>
-            <circle cx="360" cy="60" r="9" fill="#F5C542" stroke="#0B1F3A" stroke-width="4"/>
-            <g transform="translate(${40 + progress * 3.2},${240 - progress * 1.8})"><circle r="17" fill="#0B1F3A"/><text x="0" y="5" text-anchor="middle" font-size="15" fill="#fff">▰</text></g>
-            <text x="30" y="269" font-size="11" font-weight="700" fill="#0B1F3A">${escapeHtml(state.selectedTrip ? state.selectedTrip.origin : 'Start')}</text>
-            <text x="314" y="43" font-size="11" font-weight="700" fill="#0B1F3A">${escapeHtml(state.selectedTrip ? state.selectedTrip.destination : 'Destination')}</text>
-          </svg>
-        </div>
+        <section class="track-map-section card" aria-labelledby="live-map-title"
+          data-tura-map
+          data-origin="${escapeHtml(state.selectedTrip ? `${state.selectedTrip.origin}, Uganda` : 'Kampala, Uganda')}"
+          data-destination="${escapeHtml(state.selectedTrip ? `${state.selectedTrip.destination}, Uganda` : 'Gulu, Uganda')}"
+          data-live-lat="${escapeHtml(pos && Number.isFinite(Number(pos.lat)) ? String(pos.lat) : '')}"
+          data-live-lng="${escapeHtml(pos && Number.isFinite(Number(pos.lng)) ? String(pos.lng) : '')}">
+          <h2 id="live-map-title">Journey route map</h2>
+          <div class="map-stats" aria-label="Route information">
+            <div><span>Route</span><strong data-map-route>${state.selectedTrip ? `${escapeHtml(state.selectedTrip.origin)} → ${escapeHtml(state.selectedTrip.destination)}` : 'Select a trip'}</strong></div>
+            <div><span>Road distance</span><strong data-map-distance>—</strong></div>
+            <div><span>Estimated drive</span><strong data-map-eta>—</strong></div>
+          </div>
+          <div class="map-frame">
+            <div class="tura-map" data-map-canvas role="region" aria-label="Map showing your trip route"></div>
+            <div class="map-message" data-map-status role="status" aria-live="polite">Loading route map…</div>
+          </div>
+          <p class="map-disclaimer">The route and drive estimate come from Google Maps. When available, the BUS marker uses TURA’s backend trip position simulator; it is not a live GPS feed.</p>
+          <a class="track-map-link" href="/pages/map-interface.html${state.selectedTrip ? `?from=${encodeURIComponent(`${state.selectedTrip.origin}, Uganda`)}&amp;to=${encodeURIComponent(`${state.selectedTrip.destination}, Uganda`)}` : ''}">Open route planner →</a>
+        </section>
         ${!state.online || state.offlineSession ? `<div class="offline-note" role="status">${state.online ? 'Read-only Journey Pack' : 'Offline Journey Pack'} · this screen shows your saved trip itinerary only. Live vehicle location is unavailable.</div>` : ''}
         <div class="card track-panel">
           <div style="display:flex;justify-content:space-between;gap:10px">
@@ -440,6 +443,7 @@
     return `${statusBar()}${topbar('Explore')}
       <main class="page">
         <div class="explore-intro"><span class="eyebrow">FIND YOUR NEXT STOP</span><h1>Explore Uganda</h1><p>Discover routes and places worth the ride.</p></div>
+        <a class="btn btn-outline" href="/pages/map-interface.html">Open the route map →</a>
         <label class="field explore-search"><span class="visually-hidden">Search cities or routes</span><input id="explore-q" type="search" placeholder="⌕  Search a city or route"/></label>
         <div class="dest-scroll" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:visible" id="explore-grid"></div>
         <p class="empty hidden" id="explore-empty">No routes match your search yet.</p>
@@ -785,6 +789,7 @@
     bindChrome();
     try {
       await bindView(state.route, params);
+      if (state.route === 'tracking' && window.TuraMap) window.TuraMap.mount();
     } catch (e) {
       if (e.status === 401) {
         state.user = null;

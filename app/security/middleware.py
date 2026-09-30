@@ -10,9 +10,47 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from app.config import get_settings
+from app.config import get_google_maps_api_key, get_settings
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def _content_security_policy(include_google_maps: bool) -> str:
+    script_src = "'self'"
+    style_src = "'self' 'unsafe-inline'"
+    font_src = "'self' data:"
+    img_src = "'self' data: blob:"
+    connect_src = "'self' ws: wss:"
+    frame_src = "'self'"
+    worker_src = ""
+    if include_google_maps:
+        script_src += (
+            " 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com "
+            "https://*.google.com https://*.ggpht.com https://*.googleusercontent.com blob:"
+        )
+        style_src += " https://fonts.googleapis.com"
+        font_src += " https://fonts.gstatic.com"
+        img_src += (
+            " https://*.googleapis.com https://*.gstatic.com https://*.google.com "
+            "https://*.googleusercontent.com"
+        )
+        connect_src += " https://*.googleapis.com https://*.google.com https://*.gstatic.com data: blob:"
+        frame_src += " https://*.google.com"
+        worker_src = "worker-src 'self' blob:; "
+
+    return (
+        "default-src 'self'; "
+        f"script-src {script_src}; "
+        f"style-src {style_src}; "
+        f"font-src {font_src}; "
+        f"img-src {img_src}; "
+        f"connect-src {connect_src}; "
+        f"frame-src {frame_src}; "
+        f"{worker_src}"
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -23,16 +61,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=(self)"
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "font-src 'self' data:; "
-            "img-src 'self' data: blob:; "
-            "connect-src 'self' ws: wss:; "
-            "frame-ancestors 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self'"
+        response.headers["Content-Security-Policy"] = _content_security_policy(
+            bool(get_google_maps_api_key())
         )
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"

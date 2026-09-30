@@ -27,6 +27,8 @@ services:
         generateValue: true
       - key: TICKET_HMAC_SECRET
         generateValue: true
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
 
   - type: web
     name: tura-live
@@ -56,3 +58,5 @@ services:
         generateValue: true
       - key: TICKET_HMAC_SECRET
         generateValue: true
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
