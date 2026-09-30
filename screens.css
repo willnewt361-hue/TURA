@@ -5,7 +5,7 @@ a{color:inherit;text-decoration:none}
 button,input,select,textarea{font:inherit}
 .gallery-header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px max(20px,calc((100vw - 1120px)/2));background:var(--navy);color:#fff}
 .brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;letter-spacing:.08em}
-.brand-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--yellow);color:var(--navy)}
+.brand-icon{display:grid;place-items:center;width:66px;height:46px;background:url("/assets/logo.svg") center/contain no-repeat;font-size:0}
 .brand small{display:block;font-size:9px;letter-spacing:.13em;color:#c7d4e1}
 .button{display:inline-flex;justify-content:center;align-items:center;gap:12px;min-height:45px;padding:10px 18px;border:0;border-radius:11px;background:var(--navy);color:#fff;font-weight:750;cursor:pointer}
 .button-yellow{background:var(--yellow);color:var(--navy)}
@@ -93,4 +93,5 @@ h1,h2,h3,p{margin-top:0}
 .screen-footer{padding:18px;text-align:center;color:var(--muted);font-size:11px}
 @media(max-width:900px){.screen-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.gallery{padding:13px}.gallery-header{padding:10px 14px}.gallery-header .button{min-height:40px;padding:8px 11px;font-size:12px}.gallery-hero{grid-template-columns:1fr;min-height:0}.hero-copy{padding:28px 22px 18px}.hero-picture{min-height:195px;background-position:center 45%}.screen-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.screen-card img{height:150px}.gallery-callout{align-items:flex-start;flex-direction:column;padding:20px}.screen-shell{padding:10px}.screen-card-layout{grid-template-columns:1fr}.reference{display:none}.preview-hero{min-height:175px;padding:21px}.preview-body{padding:15px}.two-fields{gap:8px}}
+@media(max-width:420px){.gallery-header{gap:10px;padding:9px 10px}.gallery-header .brand{gap:7px;font-size:17px}.gallery-header .brand-icon{width:52px;height:36px}.gallery-header .brand small{display:none}.gallery-header .button{padding:7px 9px;font-size:11px}}
 @media(max-width:360px){.screen-grid{grid-template-columns:1fr 1fr}.screen-card img{height:125px}.screen-toolbar{align-items:flex-start;flex-direction:column}}

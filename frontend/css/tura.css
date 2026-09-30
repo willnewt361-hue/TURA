@@ -109,7 +109,7 @@ h1,h2,h3,h4 { font-family: var(--font-display); margin: 0; letter-spacing: -0.02
   position: sticky; top: 28px; z-index: 40;
 }
 .topbar .logo-row { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--navy); }
-.topbar .logo-row img { width: 34px; height: 34px; }
+.topbar .logo-row img { width: 58px; height: 40px; object-fit: contain; }
 .theme-toggle {
   min-height: 40px; padding: 8px 11px; border: 1px solid var(--line);
   border-radius: 10px; background: var(--card); color: var(--text);
@@ -379,6 +379,10 @@ h1,h2,h3,h4 { font-family: var(--font-display); margin: 0; letter-spacing: -0.02
 }
 
 @media (max-width: 600px) {
+  .topbar { gap: 8px; padding: 10px 12px; }
+  .topbar .logo-row { min-width: 0; flex: 1; gap: 8px; font-size: 18px; }
+  .topbar .logo-row img { width: 48px; height: 33px; flex: 0 0 auto; }
+  .topbar .logo-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .audit-list li { display: grid; }
   .ops-actions { justify-content: flex-end; }
   .ops-actions .chip { display: none; }
@@ -449,7 +453,7 @@ h1,h2,h3,h4 { font-family: var(--font-display); margin: 0; letter-spacing: -0.02
   width: fit-content;
 }
 
-.splash-brand img { width: 48px; height: 48px; border-radius: 13px; }
+.splash-brand img { width: 96px; height: 66px; object-fit: contain; }
 .splash-wordmark { display: block; color: #fff; font-size: 26px; font-weight: 900; letter-spacing: .11em; }
 .splash-brand p { margin: 0; color: rgba(255,255,255,.76); font-size: 12px; }
 .splash-copy { max-width: 440px; }

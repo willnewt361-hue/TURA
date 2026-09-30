@@ -13,6 +13,10 @@ python main.py
 
 Open <http://127.0.0.1:8000/> for the demo landing page. The API-backed application is at <http://127.0.0.1:8000/app/>. Do not start Python from inside the `app` directory; run the root launcher from this project directory so the `app` package resolves correctly.
 
+## Frontend pages and brand assets
+
+The root page serves `frontend/pages/index.html`, which links the ordered walkthrough in `frontend/pages/`. The supplied-reference gallery at `/screens/` is a visual prototype; `/app/` is the connected, backend-backed application. Both frontend experiences use `frontend/assets/logo.svg` as the canonical TURA logo.
+
 ## Render start command
 
 Use the repository root as Render's **Root Directory** (leave it blank when this repository itself is the project root). The Blueprint start command is:

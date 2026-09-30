@@ -1,5 +1,5 @@
 /* TURA service worker — app shell cache for offline-first */
-const CACHE = 'tura-shell-v6';
+const CACHE = 'tura-shell-v7';
 const SHELL = [
   '/',
   '/app/',

@@ -140,7 +140,7 @@
   function topbar(title) {
     const u = state.user;
     return `<header class="topbar">
-      <div class="logo-row"><img src="/assets/logo.svg" alt="TURA"/><span>${escapeHtml(title || 'TURA')}</span></div>
+      <div class="logo-row"><img src="/assets/logo.svg" alt="TURA — One Tap. One Journey."/><span>${escapeHtml(title || 'TURA')}</span></div>
       <button class="theme-toggle" type="button" data-theme-toggle>${document.documentElement.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode'}</button>
       <button class="avatar" id="btn-profile" title="${u ? u.name : 'Account'}">${initials(u ? u.name : 'T')}</button>
     </header>`;
@@ -178,7 +178,7 @@
   function viewSplash() {
     return `<section class="splash">
       <div class="splash-inner">
-        <div class="splash-brand"><img src="/assets/logo.svg" alt=""/><div><span class="splash-wordmark">TURA</span><p>${t('tagline')}</p></div></div>
+        <div class="splash-brand"><img src="/assets/logo.svg" alt="TURA — One Tap. One Journey."/></div>
         <div class="splash-copy"><span class="eyebrow">UGANDA, YOUR WAY</span><h1>Every journey<br/>starts with one tap.</h1><p>Find your bus, choose your seat and keep your trip close — from Kampala and beyond.</p></div>
         <div class="splash-cta">
           <button class="btn btn-accent btn-block" id="btn-start">${t('getStarted')}</button>
