@@ -1,5 +1,5 @@
 """Payment provider interface + mock provider."""
-
+from app.config import get_settings
 from __future__ import annotations
 
 import abc
@@ -49,10 +49,16 @@ class MockPaymentProvider(PaymentProvider):
         ref = f"MOCK-{secrets.token_hex(6).upper()}"
         return PaymentResult(True, ref, "success", "Mock payment accepted")
 
-
 def get_payment_provider() -> PaymentProvider:
-    return MockPaymentProvider()
+    settings = get_settings()
 
+if not settings.demo_mode:
+        raise HTTPException(
+            status_code=503,
+            detail="Payments are not available yet. No charge was made.",
+        )
+
+return MockPaymentProvider()
 
 def process_payment(
     db: Session,
