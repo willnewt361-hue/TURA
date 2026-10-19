@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TURA | One Tap. One Journey.</title>
+<meta name="description" content="TURA makes bus travel in Uganda simpler: search routes, compare buses, pick your seat and get your ticket in one flow.">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1f3a;--bg2:#10294b;--ink:#f1f5fb;--mut:#a9b8cf;--gold:#f5b700;--sky:#5cc8ff;
+  --glass:rgba(255,255,255,.06);--line:rgba(255,255,255,.14);--shadow:0 20px 60px rgba(0,0,0,.35);
+  --f:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f4f8fd;--bg2:#e6eefa;--ink:#0b1f3a;--mut:#51607a;--glass:rgba(255,255,255,.7);--line:rgba(11,31,58,.14);--shadow:0 20px 50px rgba(11,31,58,.14);--gold:#d99a00}}
+:root[data-theme="light"]{--bg:#f4f8fd;--bg2:#e6eefa;--ink:#0b1f3a;--mut:#51607a;--glass:rgba(255,255,255,.7);--line:rgba(11,31,58,.14);--shadow:0 20px 50px rgba(11,31,58,.14);--gold:#d99a00}
+:root[data-theme="dark"]{--bg:#0b1f3a;--bg2:#10294b;--ink:#f1f5fb;--mut:#a9b8cf;--glass:rgba(255,255,255,.06);--line:rgba(255,255,255,.14);--shadow:0 20px 60px rgba(0,0,0,.35);--gold:#f5b700}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--f);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;background:var(--gold);color:#1a1200;padding:8px 14px;border-radius:8px;z-index:99}
+.wrap{width:min(1120px,100% - 40px);margin-inline:auto}
+section{padding:clamp(64px,10vw,120px) 0;position:relative}
+h1,h2,h3{margin:0;line-height:1.05;letter-spacing:-.02em;font-weight:800}
+h1{font-size:clamp(42px,8.5vw,92px)}
+h2{font-size:clamp(30px,5vw,52px);max-width:16ch}
+h3{font-size:20px;letter-spacing:-.01em}
+p{margin:0;color:var(--mut)}
+.lead{font-size:clamp(17px,2.2vw,21px);max-width:52ch;margin-top:20px}
+.grad{background:linear-gradient(100deg,var(--gold),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:999px;font-weight:600;font-size:16px;border:1px solid var(--line);transition:transform .25s,box-shadow .25s,background .25s;cursor:pointer}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(120deg,var(--gold),#ffd45e);color:#1a1200;border-color:transparent;box-shadow:0 10px 30px rgba(245,183,0,.3)}
+.btn.pri:hover{box-shadow:0 14px 40px rgba(245,183,0,.5)}
+.btn.pri span{transition:transform .25s}.btn.pri:hover span{transform:translateX(4px)}
+.btn.gl{background:var(--glass);backdrop-filter:blur(12px)}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+/* nav */
+nav{position:fixed;inset:0 0 auto 0;z-index:50;padding:12px 0;padding-top:calc(12px + env(safe-area-inset-top,0px));transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+nav.on{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:.04em}
+.logo svg{width:30px;height:30px}
+.links{display:none;gap:28px;color:var(--mut);font-weight:600;font-size:15px}
+.links a:hover{color:var(--ink)}
+@media(min-width:820px){.links{display:flex}}
+nav .btn{padding:10px 18px;font-size:15px}
+/* hero */
+.hero{min-height:100svh;display:grid;align-items:center;padding-top:120px;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;pointer-events:none;animation:fl 14s ease-in-out infinite alternate}
+.o1{width:420px;height:420px;background:#1f5fbf;top:-80px;right:-100px}
+.o2{width:320px;height:320px;background:var(--gold);opacity:.22;bottom:0;left:-100px;animation-delay:-6s}
+@keyframes fl{to{transform:translate3d(-40px,50px,0) scale(1.1)}}
+.hg{display:grid;gap:56px;align-items:center;position:relative}
+@media(min-width:900px){.hg{grid-template-columns:1.1fr .9fr}}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.note{font-size:14px;margin-top:16px}
+.stage{perspective:1000px;display:grid;place-items:center}
+.tkt{width:min(340px,86vw);padding:26px;transform-style:preserve-3d;transition:transform .15s;box-shadow:var(--shadow);animation:bob 6s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -12px}}
+.tkt .r{display:flex;justify-content:space-between;align-items:center}
+.tkt small{color:var(--mut);font-size:12px}
+.tkt .big{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.route{display:flex;align-items:center;gap:10px;margin:22px 0;transform:translateZ(40px)}
+.route i{flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 12px)}
+.seats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;transform:translateZ(24px)}
+.seats b{aspect-ratio:1;border-radius:9px;background:var(--glass);border:1px solid var(--line);transition:.2s}
+.seats b.t{opacity:.35}.seats b.s{background:var(--gold);border-color:var(--gold);box-shadow:0 0 22px rgba(245,183,0,.6)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+/* proof */
+.proof{padding:28px 0;border-block:1px solid var(--line)}
+.proof ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px 36px;justify-content:center;font-weight:600;font-size:15px}
+.proof li::before{content:"";display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:50%;margin-right:10px}
+/* grids */
+.g3{display:grid;gap:18px;margin-top:48px;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+.card{padding:28px;transition:transform .3s,border-color .3s,box-shadow .3s}
+.card:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:var(--shadow)}
+.card p{margin-top:8px;font-size:16px}
+.ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px;background:linear-gradient(135deg,rgba(245,183,0,.25),rgba(92,200,255,.2));border:1px solid var(--line)}
+.ic svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* 3d graph */
+.sh{display:grid;gap:40px;align-items:center}
+@media(min-width:900px){.sh{grid-template-columns:1fr 1fr}}
+.gs{height:340px;perspective:900px;display:grid;place-items:center;cursor:grab;touch-action:pan-y;position:relative}
+.gs.d{cursor:grabbing}
+.sc{width:300px;height:220px;position:relative;transform-style:preserve-3d}
+.fl{position:absolute;left:-30px;right:-30px;bottom:0;height:150px;transform-origin:bottom;transform:rotateX(90deg) translateZ(0);transform-origin:50% 100%;background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 30px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/30px 100%;border:1px solid var(--line);opacity:.8}
+.bar{position:absolute;left:50%;bottom:0;width:34px;margin-left:-17px;transform-style:preserve-3d;transition:filter .3s}
+.bar div{position:absolute;background:linear-gradient(var(--sky),#2a6fd1);border:1px solid rgba(255,255,255,.25)}
+.bar .ft{inset:0;transform:translateZ(17px)}
+.bar .bk{inset:0;transform:rotateY(180deg) translateZ(17px);filter:brightness(.7)}
+.bar .lf{inset:0;transform:rotateY(-90deg) translateZ(17px);filter:brightness(.8)}
+.bar .rt{inset:0;transform:rotateY(90deg) translateZ(17px);filter:brightness(.8)}
+.bar .tp{width:34px;height:34px;top:-17px;transform:rotateX(90deg);background:#9fe0ff}
+.bar.hi div{background:linear-gradient(var(--gold),#e08a00)}.bar.hi .tp{background:#ffe08a}
+.steps{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:8px}
+.steps button{width:100%;text-align:left;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:12px 16px;color:var(--ink);font:600 16px var(--f);cursor:pointer;display:flex;gap:12px;align-items:center;transition:.25s}
+.steps button:hover,.steps button.on{border-color:var(--gold);transform:translateX(6px)}
+.steps em{font-style:normal;color:var(--gold);min-width:1.4em}
+.cap{font-size:13px;margin-top:10px}
+/* pricing */
+.pg{display:grid;gap:18px;margin-top:48px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));max-width:820px}
+.pc{padding:32px}.pc.f{border-color:var(--gold);background:linear-gradient(160deg,rgba(245,183,0,.14),var(--glass))}
+.pc .big{font-size:38px;font-weight:800;margin:12px 0 16px}
+.pc ul{margin:0 0 24px;padding:0;list-style:none;display:grid;gap:10px;color:var(--mut)}
+.pc li::before{content:"✓";color:var(--gold);font-weight:800;margin-right:10px}
+/* faq */
+details{border-bottom:1px solid var(--line);padding:20px 0}
+summary{cursor:pointer;font-weight:600;font-size:19px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--gold);font-size:26px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:12px;max-width:62ch}
+.faq{max-width:780px;margin-top:40px}
+/* cta */
+.fin{padding:clamp(40px,7vw,72px);text-align:center;overflow:hidden;position:relative}
+.fin h2{margin-inline:auto;max-width:14ch}.fin .cta{justify-content:center}
+footer{padding:36px 0 48px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+/* reveal */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1);transition-delay:var(--d,0s)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav id="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="TURA home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#f5b700"/><path d="M8 10h16M16 10v13" stroke="#0b1f3a" stroke-width="3.4" stroke-linecap="round"/></svg>TURA
+    </a>
+    <div class="links"><a href="#journey">Journey</a><a href="#features">Features</a><a href="#benefits">Benefits</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div>
+    <a class="btn pri" href="https://tura-yax0.onrender.com/app/">Open app <span aria-hidden="true">→</span></a>
+  </div>
+</nav>
+
+<main id="main">
+<header class="hero" id="top">
+  <div class="orb o1"></div><div class="orb o2"></div>
+  <div class="wrap hg">
+    <div>
+      <span class="tag rv">Uganda bus travel</span>
+      <h1 class="rv" style="--d:.08s;margin-top:18px">One tap.<br><span class="grad">One journey.</span></h1>
+      <p class="lead rv" style="--d:.16s">Search routes, compare buses, choose your seat and keep your ticket in one place. TURA turns a stressful trip plan into a few simple taps.</p>
+      <div class="cta rv" style="--d:.24s">
+        <a class="btn pri" href="https://tura-yax0.onrender.com/app/">Book your trip <span aria-hidden="true">→</span></a>
+        <a class="btn gl" href="#journey">See how it works</a>
+      </div>
+      <p class="note rv" style="--d:.3s">Free to open. No sign-up needed to look around.</p>
+    </div>
+    <div class="stage rv" style="--d:.2s" id="stage">
+      <div class="tkt glass" id="tkt" aria-label="Sample ticket illustration" role="img">
+        <div class="r"><small>SAMPLE TICKET</small><span class="tag">Illustration</span></div>
+        <div class="route"><span class="big">From</span><i></i><span class="big">To</span></div>
+        <small>Choose your seat</small>
+        <div class="seats" style="margin-top:10px" id="seats"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="proof"><div class="wrap"><ul class="rv">
+  <li>Built for bus travel in Uganda</li><li>Interactive seat map</li><li>Seat availability checked by the server</li><li>Works in any phone browser</li>
+</ul></div></div>
+
+<section id="features"><div class="wrap">
+  <h2 class="rv">Everything for the trip, in one flow.</h2>
+  <p class="lead rv" style="--d:.08s">From first search to the seat you sit in, each step is one clear screen.</p>
+  <div class="g3" id="fg"></div>
+</div></section>
+
+<section id="journey"><div class="wrap sh">
+  <div>
+    <h2 class="rv">Your booking path, in 3D.</h2>
+    <p class="lead rv" style="--d:.08s">Five steps from idea to ticket. Hover a step to see where you are on the path.</p>
+    <ol class="steps" id="steps"></ol>
+    <p class="cap">Chart shows step order only, not statistics. Drag the chart to rotate it.</p>
+  </div>
+  <div class="gs glass rv" id="gs" role="img" aria-label="3D bar chart of the five booking steps, rising from search to ticket"><div class="sc" id="sc"><div class="fl"></div></div></div>
+</div></section>
+
+<section id="benefits"><div class="wrap">
+  <h2 class="rv">Less waiting. More travelling.</h2>
+  <div class="g3">
+    <div class="card glass rv"><h3>Know before you go</h3><p>See departures and fares side by side before you commit to a bus.</p></div>
+    <div class="card glass rv" style="--d:.1s"><h3>Pick your own seat</h3><p>Choose where you sit from a live seat map instead of taking what is left.</p></div>
+    <div class="card glass rv" style="--d:.2s"><h3>Ticket always with you</h3><p>Your tickets stay in the app, easy to find on the day you travel.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2 class="rv">Honest about where we are.</h2>
+  <p class="lead rv" style="--d:.08s">TURA is at version 1. Here is exactly what that means, so there are no surprises.</p>
+  <div class="g3">
+    <div class="card glass rv"><h3>Payments</h3><p>Checkout is a preview. No real money is taken yet.</p></div>
+    <div class="card glass rv" style="--d:.1s"><h3>Tickets</h3><p>The preview QR code is not valid for boarding a bus.</p></div>
+    <div class="card glass rv" style="--d:.2s"><h3>Tracking</h3><p>Trip tracking screens are illustrative for now.</p></div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <h2 class="rv">Simple, clear pricing.</h2>
+  <div class="pg">
+    <div class="pc glass rv"><h3>Explore</h3><div class="big">Free</div><ul><li>Search routes and destinations</li><li>Compare sample departures</li><li>Try the seat map</li></ul><a class="btn gl" href="https://tura-yax0.onrender.com/app/">Start exploring</a></div>
+    <div class="pc glass f rv" style="--d:.1s"><h3>Book a trip</h3><div class="big">Fare per route</div><ul><li>Fares are shown before you book</li><li>No extra sign-up fee shown</li><li>Seats confirmed by the server</li></ul><a class="btn pri" href="https://tura-yax0.onrender.com/app/">Book now <span aria-hidden="true">→</span></a></div>
+  </div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <h2 class="rv">Questions, answered.</h2>
+  <div class="faq rv">
+    <details><summary>What is TURA?</summary><p>TURA is a bus travel app for Uganda. You search routes, compare buses, pick a seat and view your ticket.</p></details>
+    <details><summary>Do I need an account?</summary><p>You can open the app and look around first. Booking and tickets use your account in the connected app.</p></details>
+    <details><summary>Can I pay in the app?</summary><p>Not yet. Version 1 shows a payment preview only, and no real payment is taken.</p></details>
+    <details><summary>Will my ticket work at the bus?</summary><p>Not in this demo. The preview QR code is not valid for boarding.</p></details>
+    <details><summary>Is trip tracking live?</summary><p>No. Tracking screens are illustrative in this version.</p></details>
+  </div>
+</div></section>
+
+<section><div class="wrap"><div class="fin glass rv">
+  <div class="orb o2" style="left:-80px;bottom:-120px"></div>
+  <h2>Your next trip starts with one tap.</h2>
+  <p class="lead" style="margin-inline:auto">Open TURA and try the full booking journey.</p>
+  <div class="cta"><a class="btn pri" href="https://tura-yax0.onrender.com/app/">Open the app <span aria-hidden="true">→</span></a></div>
+</div></div></section>
+</main>
+
+<footer><div class="wrap"><span>© <span id="yr">2026</span> TURA. One tap. One journey.</span><span>Version 1 demo · Uganda</span></div></footer>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var APP="https://tura-yax0.onrender.com/app/";
+  var rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  $("yr").textContent=new Date().getFullYear();
+
+  // nav
+  var nav=$("nav");addEventListener("scroll",function(){nav.classList.toggle("on",scrollY>20)},{passive:true});
+
+  // features
+  var F=[["Search routes","Type where you are going and when. Explore destinations and routes.","M21 21l-4.3-4.3M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"],
+  ["Compare buses","See departures and fares in one list.","M3 7h18M3 12h18M3 17h12"],
+  ["Choose your seat","Tap a seat on the map and it is held for you.","M6 4h8a3 3 0 0 1 3 3v6H6zM4 20h16M9 13v7M15 13v7"],
+  ["Passenger details","Enter who is travelling once, clearly.","M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"],
+  ["Your ticket","Keep every ticket in one list inside the app.","M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"],
+  ["Trip status","Preview how progress and status will look on the road.","M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"]];
+  $("fg").innerHTML=F.map(function(f,i){return '<article class="card glass rv" style="--d:'+(i%3)*.1+'s"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+f[2]+'"/></svg></div><h3>'+f[0]+'</h3><p>'+f[1]+'</p></article>'}).join("");
+
+  // hero seats
+  var st=$("seats"),pick=5,h="";
+  for(var i=0;i<12;i++)h+='<b class="'+(i===1||i===6||i===9?'t':'')+'" data-i="'+i+'"></b>';
+  st.innerHTML=h;
+  st.addEventListener("click",function(e){var b=e.target.closest("b");if(!b||b.classList.contains("t"))return;var o=st.querySelector(".s");if(o)o.classList.remove("s");b.classList.add("s")});
+  st.children[pick].classList.add("s");
+
+  // ticket tilt
+  var tk=$("tkt");
+  if(!rm)$("stage").addEventListener("pointermove",function(e){var r=this.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;tk.style.transform="rotateY("+x*22+"deg) rotateX("+-y*18+"deg)"});
+  $("stage").addEventListener("pointerleave",function(){tk.style.transform=""});
+
+  // 3D graph
+  var S=["Search","Compare buses","Pick a seat","Add details","Get your ticket"],sc=$("sc"),bars=[],ry=-28,rx=-18,dg=false,lx=0,ly=0,hov=false;
+  S.forEach(function(n,i){
+    var b=document.createElement("div");b.className="bar";
+    b.style.height=(46+i*34)+"px";b.style.transform="translateX("+(i-2)*54+"px)";
+    b.innerHTML='<div class="ft"></div><div class="bk"></div><div class="lf"></div><div class="rt"></div><div class="tp"></div>';
+    sc.appendChild(b);bars.push(b);
+  });
+  var ol=$("steps");
+  S.forEach(function(n,i){
+    var li=document.createElement("li"),bt=document.createElement("button");
+    bt.innerHTML="<em>"+(i+1)+"</em>"+n;li.appendChild(bt);ol.appendChild(li);
+    function on(){bars.forEach(function(b,j){b.classList.toggle("hi",j<=i)});bt.classList.add("on");hov=true}
+    function off(){bars.forEach(function(b){b.classList.remove("hi")});bt.classList.remove("on");hov=false}
+    bt.addEventListener("mouseenter",on);bt.addEventListener("focus",on);bt.addEventListener("mouseleave",off);bt.addEventListener("blur",off);
+    bt.addEventListener("click",function(){location.href=APP});
+  });
+  function draw(){sc.style.transform="rotateX("+rx+"deg) rotateY("+ry+"deg)"}
+  var gs=$("gs");
+  gs.addEventListener("pointerdown",function(e){dg=true;lx=e.clientX;ly=e.clientY;gs.classList.add("d");gs.setPointerCapture(e.pointerId)});
+  gs.addEventListener("pointermove",function(e){if(!dg)return;ry+=(e.clientX-lx)*.5;rx=Math.max(-60,Math.min(0,rx+(e.clientY-ly)*.3));lx=e.clientX;ly=e.clientY;draw()});
+  function up(){dg=false;gs.classList.remove("d")}
+  gs.addEventListener("pointerup",up);gs.addEventListener("pointercancel",up);
+  var vis=false;
+  new IntersectionObserver(function(en){vis=en[0].isIntersecting}).observe(gs);
+  (function tick(){if(!rm&&vis&&!dg&&!hov){ry+=.25;draw()}requestAnimationFrame(tick)})();
+  draw();
+
+  // reveal
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll(".rv").forEach(function(el){io.observe(el)});
+})();
+</script>
+</body>
+</html>

@@ -1,19 +1,105 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Available buses</title><link rel="stylesheet" href="/css/demo.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TURA | Available buses</title><style>body{margin:0;font:16px system-ui;background:#0b1f3a;color:#eef3fb}.wrap{width:min(1000px,94%);margin:auto;padding:20px 0}.topbar{display:flex;justify-content:space-between;padding:14px 20px;align-items:center}.brand{display:flex;gap:10px;align-items:center;font-weight:800;color:inherit;text-decoration:none}.brand img{height:30px}.brand small{display:block;font-size:10px;opacity:.7}.top-actions{display:flex;gap:8px}.button{display:inline-block;padding:9px 16px;border-radius:99px;border:1px solid rgba(255,255,255,.25);color:inherit;background:none;font:inherit;text-decoration:none;cursor:pointer}.button-primary{background:#f5b700;color:#1a1200;border-color:#f5b700}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:end}.eyebrow{font-size:12px;opacity:.7}.page-grid{display:grid;gap:18px;margin-top:20px}.panel{padding:18px;border:1px solid rgba(255,255,255,.2);border-radius:20px}.trip-card{display:grid;gap:6px;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:16px;margin-bottom:12px}.price{font-weight:800;font-size:20px}.muted{opacity:.7;margin:0}.notice{opacity:.8;font-size:14px}.reference{display:none}.journey-nav{display:flex;justify-content:space-between}a{color:inherit}h1,h3{margin:4px 0}</style>
+<style>
+/* Additions for bus details. Neutral colours so they work in light and dark mode. */
+.bus-tools{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bus-tools label{display:flex;align-items:center;gap:8px;font-size:14px}
+.bus-tools select{font:inherit;color:inherit;background:transparent;border:1px solid rgba(127,127,127,.4);border-radius:10px;padding:8px 10px}
+.bus-tools select option{color:#111}
+.dsw{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;color:inherit;background:none;border:0;cursor:pointer;padding:4px}
+.dsw i{width:38px;height:22px;border-radius:99px;background:rgba(127,127,127,.4);position:relative;transition:.25s}
+.dsw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.25s}
+.dsw[aria-checked=true] i{background:#f5b700}.dsw[aria-checked=true] i::after{transform:translateX(16px)}
+.trip-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bus-plate{display:inline-block;background:#fff;color:#111;border:2px solid #111;border-radius:7px;padding:0 9px;font:800 14px/1.5 system-ui,sans-serif;letter-spacing:.1em;vertical-align:middle}
+.bus-plate.lg{font-size:24px;border-width:3px;padding:2px 16px 3px;border-radius:9px}
+.bd{margin:-4px 0 4px;padding:18px;border:1px solid rgba(127,127,127,.35);border-radius:18px;background:rgba(127,127,127,.07);display:grid;gap:18px}
+.bd[hidden]{display:none}
+@media(min-width:820px){.bd{grid-template-columns:1.1fr .9fr}}
+.bd figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid rgba(127,127,127,.3);aspect-ratio:16/9;background:rgba(127,127,127,.12)}
+.bd figure img,.bd figure svg{display:block;width:100%;height:100%;object-fit:cover}
+.bd h4{margin:0 0 8px;font-size:15px}
+.bd dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0;font-size:15px}.bd dt{opacity:.7}.bd dd{margin:0;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0;list-style:none}.chips li{font-size:13px;border:1px solid rgba(127,127,127,.4);border-radius:99px;padding:2px 10px}
+.drv{padding:16px;border:1px solid rgba(127,127,127,.35);border-radius:16px}
+.drv-h{display:flex;gap:14px;align-items:center}
+.av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:19px;background:linear-gradient(135deg,#f5b700,#5cc8ff);color:#10213a;flex:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;text-align:center}
+.stats div{border:1px solid rgba(127,127,127,.35);border-radius:12px;padding:8px 4px}.stats b{display:block;font-size:19px}.stats span{font-size:12px;opacity:.7}
+.recent{margin:8px 0 0;padding-left:18px;font-size:14px}
+.dn{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px dashed #f5b700;background:rgba(245,183,0,.1);font-size:13.5px}
+.dn b{background:#f5b700;color:#1a1200;border-radius:6px;padding:1px 8px;font-size:11px;letter-spacing:.04em;flex:none}
+.nodemo .dn{display:none}
+.bd-full{grid-column:1/-1}
+</style></head>
 <body>
-  <header class="topbar"><a class="brand" href="/"><img src="/assets/logo.svg" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/pages/login.html">Demo sign in</a></nav></header>
+  <header class="topbar"><a class="brand" href="/"><img src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27/%3E" alt=""><span>TURA<small>ONE TAP. ONE JOURNEY.</small></span></a><nav class="top-actions"><button class="button" type="button" data-theme-toggle>Dark mode</button><a class="button button-primary" href="/pages/login.html">Demo sign in</a></nav></header>
   <main class="wrap page">
     <div class="section-head"><div><span class="eyebrow">02 · SAMPLE DEPARTURES</span><h1>Available buses</h1><p><span data-query="from">Kampala</span> → <span data-query="to">Gulu</span> · <span data-query="date">Choose date on Home</span></p></div><a class="button" href="/pages/home.html">Change journey</a></div>
     <div class="page-grid">
-      <section class="panel content-panel">
-        <article class="trip-card"><div><h3>Modern Coast</h3><p class="muted">Luxury coach · ★ 4.7</p></div><div class="price">UGX 40,000</div><p class="meta">08:00 AM Kampala · 12:45 PM Gulu · Wi-Fi · 28 seats</p><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></article>
-        <article class="trip-card"><div><h3>St. Noah</h3><p class="muted">Standard coach · ★ 4.6</p></div><div class="price">UGX 35,000</div><p class="meta">09:30 AM Kampala · 02:30 PM Gulu · USB charging</p><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></article>
-        <article class="trip-card"><div><h3>Eagle Coach</h3><p class="muted">Executive coach · ★ 4.8</p></div><div class="price">UGX 45,000</div><p class="meta">11:00 AM Kampala · 04:30 PM Gulu · Air conditioning</p><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></article>
-        <p class="notice">These are illustrative departures—not live operator inventory. Continue in the connected app for server-checked seats and fares.</p>
+      <section class="panel content-panel" id="list">
+        <div class="bus-tools">
+          <label for="sort">Sort by
+            <select id="sort"><option value="time">Earliest departure</option><option value="price">Lowest fare</option><option value="rating">Top rated</option></select>
+          </label>
+          <button class="dsw" id="demoSw" type="button" role="switch" aria-checked="true"><i></i><span>Demo notes</span></button>
+        </div>
+
+        <article class="trip-card" data-bus="modern-coast" data-time="480" data-price="40000" data-rating="4.7"><div><h3>Modern Coast</h3><p class="muted">Luxury coach · ★ 4.7</p></div><div class="price">UGX 40,000</div><p class="meta">08:00 AM Kampala · 12:45 PM Gulu · Wi-Fi · 28 seats</p><div class="trip-actions"><button class="button" type="button" data-details aria-expanded="false">Bus &amp; driver</button><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></div></article>
+        <article class="trip-card" data-bus="st-noah" data-time="570" data-price="35000" data-rating="4.6"><div><h3>St. Noah</h3><p class="muted">Standard coach · ★ 4.6</p></div><div class="price">UGX 35,000</div><p class="meta">09:30 AM Kampala · 02:30 PM Gulu · USB charging</p><div class="trip-actions"><button class="button" type="button" data-details aria-expanded="false">Bus &amp; driver</button><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></div></article>
+        <article class="trip-card" data-bus="eagle-coach" data-time="660" data-price="45000" data-rating="4.8"><div><h3>Eagle Coach</h3><p class="muted">Executive coach · ★ 4.8</p></div><div class="price">UGX 45,000</div><p class="meta">11:00 AM Kampala · 04:30 PM Gulu · Air conditioning</p><div class="trip-actions"><button class="button" type="button" data-details aria-expanded="false">Bus &amp; driver</button><a class="button button-primary" href="/pages/seats.html">Choose seat →</a></div></article>
+
+        <p class="notice" id="notice">These are illustrative departures—not live operator inventory. Continue in the connected app for server-checked seats and fares.</p>
         <div class="journey-nav"><a href="/pages/home.html">← Home</a><a href="/pages/seats.html">Seat selection →</a></div>
       </section>
       <figure class="reference"><img src="/screens/2nd%20page.jpg" alt="Supplied TURA bus-results reference"><figcaption>Supplied available-buses design reference</figcaption></figure>
     </div>
   </main>
-  <script src="/js/demo.js"></script>
+  
+  <script>
+  (function(){
+  "use strict";
+  var $=function(s,r){return(r||document).querySelector(s)};
+  // Sample content only. Real plates, drivers and trip history will come from the backend later.
+  var IMG="/assets/sample-bus.jpg",IMG2="/assets/uganda-coach.svg";
+  var BUS={
+   "modern-coast":{color:"#1f5fbf",colorName:"Royal blue with gold stripe",model:"28-seat luxury coach",plate:"UBX 482K",amen:["Wi-Fi","Air conditioning","Reclining seats","Luggage hold"],
+     d:{name:"Moses Okello",lic:"PSV licence",years:11,trips:2480,rating:4.8,lang:"English, Luganda, Acholi"},recent:["Kampala → Gulu · Completed","Gulu → Kampala · Completed","Kampala → Gulu · Completed"]},
+   "st-noah":{color:"#0f8f6f",colorName:"Emerald green",model:"36-seat standard coach",plate:"UAZ 117T",amen:["USB charging","Fan ventilation","Luggage hold"],
+     d:{name:"Grace Namukasa",lic:"PSV licence",years:8,trips:1710,rating:4.7,lang:"English, Luganda"},recent:["Kampala → Gulu · Completed","Gulu → Kampala · Completed","Kampala → Lira · Completed"]},
+   "eagle-coach":{color:"#7a3fd0",colorName:"Violet with silver trim",model:"32-seat executive coach",plate:"UBF 905M",amen:["Air conditioning","Reclining seats","USB charging","Luggage hold"],
+     d:{name:"Samuel Byaruhanga",lic:"PSV licence",years:15,trips:3320,rating:4.9,lang:"English, Runyankole"},recent:["Kampala → Gulu · Completed","Gulu → Kampala · Completed","Kampala → Arua · Completed"]}
+  };
+  function svg(c){var w="",i;for(i=0;i<5;i++)w+='<rect x="'+(26+i*50)+'" y="36" width="38" height="30" rx="5" fill="#cfe9ff"/>';
+   return'<svg viewBox="0 0 320 150" role="img" aria-label="Illustration of the bus"><rect width="320" height="150" fill="#10294b"/><rect x="10" y="22" width="300" height="86" rx="16" fill="'+c+'"/>'+w+'<rect x="10" y="78" width="300" height="8" fill="#f5b700"/><circle cx="82" cy="112" r="17" fill="#111"/><circle cx="244" cy="112" r="17" fill="#111"/></svg>'}
+  function panel(id,name){var b=BUS[id],d=b.d,ini=d.name.split(" ").map(function(x){return x[0]}).join("");
+   var el=document.createElement("div");el.className="bd";el.hidden=true;el.id="bd-"+id;el.setAttribute("role","region");el.setAttribute("aria-label",name+" bus and driver details");
+   el.innerHTML='<div><figure><img src="'+IMG+'" alt="Photo of the '+name+' bus" loading="lazy"></figure>'+
+    '<h4 style="margin-top:16px">Number plate</h4><span class="bus-plate lg">'+b.plate+'</span>'+
+    '<dl><dt>Appearance</dt><dd>'+b.colorName+'</dd><dt>Model</dt><dd>'+b.model+'</dd></dl>'+
+    '<h4>On board</h4><ul class="chips">'+b.amen.map(function(a){return"<li>"+a+"</li>"}).join("")+'</ul></div>'+
+    '<div class="drv"><div class="drv-h"><div class="av" aria-hidden="true">'+ini+'</div><div><strong>'+d.name+'</strong><br><span style="opacity:.7;font-size:14px">Sample driver · '+d.lic+'</span></div></div>'+
+    '<div class="stats"><div><b>'+d.trips.toLocaleString("en-US")+'</b><span>trips</span></div><div><b>'+d.years+' yrs</b><span>experience</span></div><div><b>'+d.rating.toFixed(1)+'</b><span>rating</span></div></div>'+
+    '<dl><dt>Languages</dt><dd>'+d.lang+'</dd></dl><h4>Recent trips</h4><ul class="recent">'+b.recent.map(function(r){return"<li>"+r+"</li>"}).join("")+'</ul></div>'+
+    '<div class="dn bd-full"><b>DEMO</b><span>The bus photo, number plate, driver and trip history are sample content. In the live app these come from verified operator records.</span></div>';
+   var img=$("img",el),tried=0;img.addEventListener("error",function(){tried++;if(tried===1){img.src=IMG2}else{$("figure",el).innerHTML=svg(b.color)}});
+   return el}
+  var cards=[].slice.call(document.querySelectorAll(".trip-card[data-bus]")),list=$("#list"),notice=$("#notice");
+  cards.forEach(function(c){var id=c.dataset.bus;if(!BUS[id])return;var name=$("h3",c).textContent;
+   var meta=$(".meta",c);meta.insertAdjacentHTML("beforeend",' · <span class="bus-plate">'+BUS[id].plate+'</span>');
+   var p=panel(id,name);c.after(p);c._p=p;
+   var btn=$("[data-details]",c);btn.setAttribute("aria-controls",p.id);
+   btn.addEventListener("click",function(){var open=p.hidden;p.hidden=!open;btn.setAttribute("aria-expanded",open);btn.innerHTML=open?"Hide details":"Bus &amp; driver"});
+   $("a.button-primary",c).addEventListener("click",function(){
+    try{sessionStorage.setItem("tura_bus",JSON.stringify({id:id,name:name,plate:BUS[id].plate,model:BUS[id].model,colorName:BUS[id].colorName,driver:BUS[id].d.name,price:+c.dataset.price,time:c.querySelector(".meta").textContent.split("·")[0].trim()}))}catch(e){}
+    this.href="/pages/seats.html?bus="+encodeURIComponent(id)})});
+  // sort
+  $("#sort").addEventListener("change",function(){var k=this.value;
+   cards.slice().sort(function(a,b){return k==="rating"?b.dataset.rating-a.dataset.rating:a.dataset[k]-b.dataset[k]}).forEach(function(c){list.insertBefore(c,notice);list.insertBefore(c._p,notice)})});
+  // demo notes switch (shared with the home page)
+  var sw=$("#demoSw");function setDemo(on){sw.setAttribute("aria-checked",on);document.body.classList.toggle("nodemo",!on);try{localStorage.setItem("tura_demo",on?"1":"0")}catch(e){}}
+  var sv=null;try{sv=localStorage.getItem("tura_demo")}catch(e){}setDemo(sv!=="0");
+  sw.addEventListener("click",function(){setDemo(sw.getAttribute("aria-checked")!=="true")});
+  })();
+  </script>
 </body></html>
