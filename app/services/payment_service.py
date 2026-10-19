@@ -1,5 +1,5 @@
 """Payment provider interface + mock provider."""
-from app.config import get_settings
+# from app.config import get_settings
 from __future__ import annotations
 
 import abc
@@ -11,6 +11,7 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db.models import Booking, Payment
 from app.services.audit import audit
 
@@ -38,7 +39,6 @@ class PaymentProvider(abc.ABC):
 
 class MockPaymentProvider(PaymentProvider):
     """Local mock — no real MoMo/card calls. Integration boundary for MTN/Airtel later."""
-
     name = "mock"
 
     def charge(self, amount: int, method: str, metadata: dict) -> PaymentResult:
@@ -52,13 +52,13 @@ class MockPaymentProvider(PaymentProvider):
 def get_payment_provider() -> PaymentProvider:
     settings = get_settings()
 
-if not settings.demo_mode:
-        raise HTTPException(
-            status_code=503,
-            detail="Payments are not available yet. No charge was made.",
-        )
+    if not settings.demo_mode:
+            raise HTTPException(
+                status_code=503,
+                detail="Payments are not available yet. No charge was made.",
+            )
+    return MockPaymentProvider()
 
-return MockPaymentProvider()
 
 def process_payment(
     db: Session,
