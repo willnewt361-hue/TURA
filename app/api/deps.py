@@ -31,9 +31,24 @@ def create_access_token(user_id: int, role: str) -> str:
 def decode_token(token: str) -> dict:
     settings = get_settings()
     try:
-        return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        return jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[ALGORITHM],
+            options={"require": ["exp", "sub"]},
+        )
     except jwt.PyJWTError as exc:
         raise HTTPException(401, "Invalid or expired session") from exc
+
+
+def _user_id_from(data: dict) -> int:
+    try:
+        user_id = int(data["sub"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(401, "Invalid session subject") from exc
+    if user_id < 1:
+        raise HTTPException(401, "Invalid session subject")
+    return user_id
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
@@ -45,7 +60,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     if not token:
         raise HTTPException(401, "Authentication required")
     data = decode_token(token)
-    user = db.get(User, int(data["sub"]))
+    user = db.get(User, _user_id_from(data))
     if not user or user.status != "active":
         raise HTTPException(401, "User inactive or not found")
     return user
@@ -61,7 +76,8 @@ def get_optional_user(request: Request, db: Session = Depends(get_db)) -> Option
         return None
     try:
         data = decode_token(token)
-        return db.get(User, int(data["sub"]))
+        user = db.get(User, _user_id_from(data))
+        return user if user and user.status == "active" else None
     except HTTPException:
         return None
 

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="description" content="Hardware, software and go-live requirements for running the TURA bus booking platform.">
+  <title>System requirements | TURA</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/pwa-icon-180.png">
+  <link rel="stylesheet" href="/css/demo.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="TURA home">
+      <img src="/assets/logo.svg" alt="">
+      <span>TURA<small>ONE TAP. ONE JOURNEY.</small></span>
+    </a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <a class="button button-quiet" href="/#routes">Routes</a>
+      <a class="button button-quiet" href="/pages/help.html">Help</a>
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button button-primary" href="/app/">Open app <span aria-hidden="true">→</span></a>
+    </nav>
+  </header>
+
+  <main class="wrap doc-page">
+    <span class="eyebrow">OPERATIONS</span>
+    <h1>System requirements</h1>
+    <p class="doc-lede">What you need to run TURA in the real world. This build is a deployable V1 foundation: review the limitations at the end before inviting passengers.</p>
+
+    <section class="doc-section" aria-labelledby="infra-title">
+      <h2 id="infra-title">Hosting &amp; infrastructure</h2>
+      <table class="doc-table">
+        <thead><tr><th>Item</th><th>Minimum</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Application server</td><td>1 vCPU · 1 GB RAM · 10 GB SSD</td><td>Single Uvicorn worker while using SQLite. Add RAM before scaling.</td></tr>
+          <tr><td>Database</td><td>SQLite file on a persistent disk</td><td>One worker and one instance only. Move to PostgreSQL before horizontal scaling.</td></tr>
+          <tr><td>Backups</td><td>Daily copy off the server</td><td>Backups are admin-only and disabled in demo mode. Test a restore every quarter.</td></tr>
+          <tr><td>Network</td><td>Domain + HTTPS certificate</td><td>Set <code>SESSION_COOKIE_SECURE=true</code> and leave <code>CORS_ORIGINS</code> empty for same-origin hosting.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc-section" aria-labelledby="park-title">
+      <h2 id="park-title">Bus park / booking office</h2>
+      <table class="doc-table">
+        <thead><tr><th>Item</th><th>Specification</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Counter computer</td><td>4 GB RAM · modern Chrome, Edge, Firefox or Safari</td><td>Used by agents and managers.</td></tr>
+          <tr><td>Boarding device</td><td>Android 8+ phone or tablet with rear camera</td><td>Scan the QR from the ticket. Validation is online-only.</td></tr>
+          <tr><td>Internet</td><td>5 Mbps+ per counter, 4G backup</td><td>Boarding verification and live updates need a connection.</td></tr>
+          <tr><td>Power</td><td>UPS or small solar kit for router + counter</td><td>Load-shedding is the most common cause of park downtime.</td></tr>
+          <tr><td>Printer (optional)</td><td>58/80 mm thermal printer</td><td>Tickets also print from the browser.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc-section" aria-labelledby="software-title">
+      <h2 id="software-title">Software in this project</h2>
+      <table class="doc-table">
+        <thead><tr><th>Layer</th><th>Technology</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Backend</td><td>Python 3.13 · FastAPI · SQLAlchemy</td><td>Single-process API with WebSocket events.</td></tr>
+          <tr><td>Database</td><td>SQLite (WAL)</td><td>Unique seat-lock constraint; move to a shared DB before scaling.</td></tr>
+          <tr><td>Frontend</td><td>HTML · CSS · vanilla JavaScript</td><td>No build step. Installable PWA with an offline app shell.</td></tr>
+          <tr><td>Tickets</td><td>HMAC-SHA256 signed token · QR PNG</td><td>Server-side single-use validation.</td></tr>
+          <tr><td>Payments</td><td>Mock provider (demo only)</td><td>Integrate MTN MoMo / Airtel Money / a card gateway before launch.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc-section" aria-labelledby="golive-title">
+      <h2 id="golive-title">Go-live checklist</h2>
+      <table class="doc-table">
+        <thead><tr><th>Area</th><th>Action</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Secrets</td><td>Set unique <code>SECRET_KEY</code> and <code>TICKET_HMAC_SECRET</code> (32+ chars)</td><td>Production startup refuses weak or reused secrets.</td></tr>
+          <tr><td>Demo flags</td><td><code>TURA_ENV=production</code>, <code>DEMO_MODE=false</code>, <code>DEMO_INSTANCE=false</code></td><td>Demo login and mock payments must be off for real passengers.</td></tr>
+          <tr><td>Cookies</td><td><code>SESSION_COOKIE_SECURE=true</code></td><td>Prevents session cookies over plain HTTP.</td></tr>
+          <tr><td>Proxy</td><td>Set <code>TRUST_PROXY=true</code> only behind a trusted proxy</td><td>Correct client IPs for rate limiting.</td></tr>
+          <tr><td>Payments</td><td>Connect a real provider and webhook confirmation</td><td>This build does not move money.</td></tr>
+          <tr><td>Data</td><td>Replace demo operators, routes, fares and photos</td><td>Never mix demo and live data.</td></tr>
+          <tr><td>Legal</td><td>Review terms, privacy and support contacts</td><td>Template text is not legal advice.</td></tr>
+          <tr><td>Testing</td><td>Run <code>pytest</code>, manual booking, validation, offline and mobile checks</td><td>Release gate.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc-section" aria-labelledby="limits-title">
+      <h2 id="limits-title">Known limitations</h2>
+      <div class="doc-grid">
+        <article class="doc-card"><h3>Payments</h3><p>Simulated. No wallet or card is charged.</p></article>
+        <article class="doc-card"><h3>Tracking</h3><p>Simulated corridor waypoints, not vehicle GPS.</p></article>
+        <article class="doc-card"><h3>SOS</h3><p>Internal operations alert only. Never contacts emergency services.</p></article>
+        <article class="doc-card"><h3>Offline</h3><p>Cached tickets and itinerary are read-only and may be stale. Validation needs a connection.</p></article>
+        <article class="doc-card"><h3>Scaling</h3><p>In-memory rate limiter and WebSocket rooms require one instance.</p></article>
+        <article class="doc-card"><h3>Migrations</h3><p>No automated database migrations yet. Back up before upgrading.</p></article>
+      </div>
+    </section>
+
+    <footer class="footer home-footer">
+      <span>TURA · HTML, CSS, JavaScript and FastAPI</span>
+      <div><a href="/pages/help.html">Help</a> · <a href="/pages/legal.html">Terms &amp; privacy</a> · <a href="/pages/login.html">Demo access</a></div>
+    </footer>
+  </main>
+
+  <script src="/js/demo.js"></script>
+</body>
+</html>

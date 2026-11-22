@@ -17,9 +17,9 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
@@ -28,7 +28,7 @@ from app.api import auth, bookings, luggage, operations, payments, reports, sos,
 from app.api.deps import COOKIE_NAME, decode_token
 from app.config import get_google_maps_api_key, get_settings
 from app.db.models import Booking, Trip, User
-from app.db.seed import seed_if_empty
+from app.db.seed import ensure_rolling_timetable, seed_if_empty
 from app.db.session import SessionLocal, init_db
 from app.realtime.manager import manager, ops_room, trip_room
 from app.security.middleware import (
@@ -120,6 +120,7 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         seed_if_empty(db)
+        ensure_rolling_timetable(db)
     finally:
         db.close()
 
@@ -189,6 +190,7 @@ def create_app() -> FastAPI:
             "features": current.feature_flags(),
             "currency": current.currency,
             "demo_mode": current.demo_mode,
+            "backup_export_enabled": not current.demo_mode and not current.demo_instance,
             "seat_lock_seconds": current.seat_lock_seconds,
             "google_maps_api_key": get_google_maps_api_key(),
         }
@@ -295,7 +297,19 @@ def create_app() -> FastAPI:
     css = FRONTEND / "css"
     js = FRONTEND / "js"
     pages = FRONTEND / "pages"
-    screen_gallery = ROOT / "TURA"
+    nexus = FRONTEND / "nexus"
+    screen_images = {
+        "2nd page.jpg",
+        "3rd.jpg",
+        "4th.jpg",
+        "5th.jpg",
+        "6th.jpg",
+        "7th.jpg",
+        "8th.jpg",
+        "9th.jpg",
+        "Home screen.jpg",
+        "Splash screen..jpg",
+    }
     if assets.exists():
         application.mount("/assets", StaticFiles(directory=str(assets)), name="assets")
     if css.exists():
@@ -304,49 +318,15 @@ def create_app() -> FastAPI:
         application.mount("/js", StaticFiles(directory=str(js)), name="js")
     if pages.exists():
         application.mount("/pages", StaticFiles(directory=str(pages)), name="pages")
-    if screen_gallery.exists():
-        application.mount(
-            "/screens",
-            StaticFiles(directory=str(screen_gallery), html=True),
-            name="screen-gallery",
-        )
-    elif (ROOT / "Master.jpg").is_file():
-        gallery_files = {
-            "Master.jpg",
-            "Splash screen..jpg",
-            "Home screen.jpg",
-            "2nd page.jpg",
-            "3rd.jpg",
-            "4th.jpg",
-            "5th.jpg",
-            "6th.jpg",
-            "7th.jpg",
-            "8th.jpg",
-            "9th.jpg",
-            "index.html",
-            "splash.html",
-            "home.html",
-            "buses.html",
-            "seats.html",
-            "passenger.html",
-            "payment.html",
-            "ticket.html",
-            "tracking.html",
-            "tickets.html",
-            "explore.html",
-            "screens.css",
-            "screens.js",
-        }
+    if nexus.exists():
+        application.mount("/nexus", StaticFiles(directory=str(nexus), html=True), name="nexus")
 
-        @application.get("/screens/")
-        def screen_gallery_index():
-            return FileResponse(ROOT / "index.html")
-
-        @application.get("/screens/{asset_name}")
-        def screen_gallery_asset(asset_name: str):
-            if asset_name not in gallery_files:
-                raise HTTPException(status_code=404, detail="Gallery asset not found")
-            return FileResponse(ROOT / asset_name)
+    @application.get("/screens/{asset_name}")
+    def reference_image(asset_name: str):
+        image_path = ROOT / asset_name
+        if asset_name not in screen_images or not image_path.is_file():
+            raise HTTPException(status_code=404, detail="Reference image not found")
+        return FileResponse(image_path)
 
     @application.get("/")
     def index():
@@ -356,6 +336,47 @@ def create_app() -> FastAPI:
     @application.get("/app/")
     def connected_app():
         return FileResponse(FRONTEND / "index.html")
+
+    public_pages = {
+        "/help": "help.html",
+        "/legal": "legal.html",
+        "/requirements": "requirements.html",
+        "/verify": "verify.html",
+    }
+
+    for route, filename in public_pages.items():
+        def _page(path: str = filename):
+            page = pages / path
+            if not page.is_file():
+                raise HTTPException(status_code=404, detail="Page not found")
+            return FileResponse(page)
+
+        application.add_api_route(route, _page, methods=["GET"], include_in_schema=False)
+
+    @application.get("/robots.txt", include_in_schema=False)
+    def robots(request: Request):
+        body = (
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /api/\n"
+            "Disallow: /app/\n"
+            f"Sitemap: {str(request.base_url).rstrip('/')}/sitemap.xml\n"
+        )
+        return Response(content=body, media_type="text/plain")
+
+    @application.get("/sitemap.xml", include_in_schema=False)
+    def sitemap(request: Request):
+        root = str(request.base_url).rstrip("/")
+        urls = ["/", "/help", "/legal", "/requirements", "/verify"]
+        entries = "".join(
+            f"<url><loc>{root}{path}</loc><changefreq>weekly</changefreq></url>" for path in urls
+        )
+        body = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f"{entries}</urlset>"
+        )
+        return Response(content=body, media_type="application/xml")
 
     @application.get("/sw.js")
     def service_worker():

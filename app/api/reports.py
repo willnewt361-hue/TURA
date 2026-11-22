@@ -32,6 +32,12 @@ def _backup_folder() -> Path:
     return Path(database_path).resolve().parent / "backups"
 
 
+def _require_backup_export_enabled() -> None:
+    settings = get_settings()
+    if settings.demo_mode or settings.demo_instance:
+        raise HTTPException(403, "Database backups are disabled in demo mode")
+
+
 @router.get("/dashboard")
 def dashboard(
     db: Session = Depends(get_db),
@@ -168,8 +174,9 @@ def health(
 @router.post("/backup")
 def backup(
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles("admin", "operator")),
+    user: User = Depends(require_roles("admin")),
 ):
+    _require_backup_export_enabled()
     settings = get_settings()
     if not settings.database_url.startswith("sqlite"):
         raise HTTPException(501, "Backup is currently supported for SQLite deployments only")
@@ -215,8 +222,9 @@ def backup(
 @router.get("/backup/download")
 def download_latest_backup(
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles("admin", "operator")),
+    user: User = Depends(require_roles("admin")),
 ):
+    _require_backup_export_enabled()
     folder = _backup_folder()
     if not folder.is_dir():
         raise HTTPException(404, "No backups")

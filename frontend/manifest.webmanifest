@@ -1,18 +1,56 @@
 {
-  "name": "TURA",
+  "name": "TURA — One Tap. One Journey.",
   "short_name": "TURA",
-  "description": "Offline-first bus travel — One Tap. One Journey.",
+  "description": "Offline-first bus travel across Uganda: search, reserve a seat, pay and board with a QR ticket.",
   "id": "/app/",
   "start_url": "/app/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["travel", "navigation", "productivity"],
   "background_color": "#0B1F3A",
   "theme_color": "#0B1F3A",
   "icons": [
     {
-      "src": "/assets/logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/assets/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find a trip",
+      "short_name": "Search",
+      "url": "/app/#/home",
+      "icons": [{ "src": "/assets/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My tickets",
+      "short_name": "Tickets",
+      "url": "/app/#/tickets",
+      "icons": [{ "src": "/assets/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live tracking",
+      "short_name": "Track",
+      "url": "/app/#/tracking",
+      "icons": [{ "src": "/assets/pwa-icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

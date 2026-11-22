@@ -19,6 +19,7 @@ from app.services.payment_service import new_idempotency_key
 
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 PHONE_RE = re.compile(r"^\+?\d{9,15}$")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 
 
 class BookingIn(BaseModel):
@@ -94,6 +95,9 @@ async def create_booking(
     if len(name) < 2:
         raise HTTPException(400, "Passenger name must contain at least two characters")
     special = re.sub(r"[<>]", "", body.special_request or "").strip() or None
+    email = (body.passenger_email or "").strip()
+    if email and not EMAIL_RE.match(email):
+        raise HTTPException(400, "Invalid passenger email")
     key = body.idempotency_key or new_idempotency_key()
     booking = booking_service.create_booking(
         db,
@@ -102,7 +106,7 @@ async def create_booking(
         seat_id=body.seat_id,
         passenger_name=name,
         passenger_phone=body.passenger_phone.strip(),
-        passenger_email=body.passenger_email,
+        passenger_email=email or None,
         special_request=special,
         include_insurance=body.include_insurance,
         include_luggage=body.include_luggage,

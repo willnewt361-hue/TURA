@@ -71,28 +71,74 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+SENSITIVE_PATHS = (
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/auth/demo-login",
+    "/api/auth/change-password",
+    "/api/auth/reset-password",
+    "/api/tickets/lookup",
+)
+
+
+def _client_ip(request: Request) -> str:
+    """Resolve the real client IP.
+
+    X-Forwarded-For is only trusted when TRUST_PROXY is enabled, because any
+    client can spoof it on a direct connection.
+    """
+    if get_settings().trust_proxy:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        if forwarded:
+            first = forwarded.split(",")[0].strip()
+            if first:
+                return first
+    return request.client.host if request.client else "unknown"
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory sliding-window rate limiter per IP."""
+    """Simple in-memory sliding-window rate limiter per IP.
+
+    Auth endpoints get a stricter bucket so password guessing is expensive even
+    when the general API limit is generous.
+    """
 
     def __init__(self, app, limit: int | None = None):
         super().__init__(app)
-        self.limit = limit or get_settings().rate_limit_per_minute
+        settings = get_settings()
+        self.limit = limit or settings.rate_limit_per_minute
+        self.auth_limit = settings.auth_rate_limit_per_minute
         self.window = 60.0
-        self.hits: Dict[str, Deque[float]] = defaultdict(deque)
+        self.hits: Dict[tuple[str, str], Deque[float]] = defaultdict(deque)
+        self._last_prune = time.time()
+
+    def _prune(self, now: float) -> None:
+        if now - self._last_prune < 60 and len(self.hits) < 5000:
+            return
+        self._last_prune = now
+        cutoff = now - self.window
+        stale = [key for key, q in self.hits.items() if not q or q[-1] < cutoff]
+        for key in stale:
+            self.hits.pop(key, None)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         path = request.url.path
         if not path.startswith("/api/") or path == "/api/health":
             return await call_next(request)
 
-        client = request.client.host if request.client else "unknown"
+        client = _client_ip(request)
+        bucket = "auth" if path in SENSITIVE_PATHS else "api"
+        limit = self.auth_limit if bucket == "auth" else self.limit
+
         now = time.time()
-        q = self.hits[client]
+        self._prune(now)
+        q = self.hits[(client, bucket)]
         while q and now - q[0] > self.window:
             q.popleft()
-        if len(q) >= self.limit:
+        if len(q) >= limit:
             return JSONResponse(
                 status_code=429,
+                headers={"Retry-After": "60"},
                 content={"detail": "Too many requests. Please slow down."},
             )
         q.append(now)

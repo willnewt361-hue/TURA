@@ -84,5 +84,23 @@
     });
   }
 
-  global.TuraStore = { put, get, getAll, clearStore };
+  async function clearTicketsForOwner(ownerId) {
+    if (!Number.isInteger(ownerId) || ownerId < 1) {
+      throw new Error('A valid account is required to clear saved tickets');
+    }
+    const tickets = await getAll('tickets', ownerId);
+    if (!tickets.length) return;
+
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('tickets', 'readwrite');
+      const store = transaction.objectStore('tickets');
+      tickets.forEach((ticket) => store.delete(ticket.id));
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error || new Error('Could not clear saved tickets'));
+      transaction.onabort = () => reject(transaction.error || new Error('Ticket cleanup was aborted'));
+    });
+  }
+
+  global.TuraStore = { put, get, getAll, clearStore, clearTicketsForOwner };
 })(window);

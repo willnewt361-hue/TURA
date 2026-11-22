@@ -35,11 +35,13 @@
     tripCacheMode: 'live',
     offlineSession: false,
     online: navigator.onLine,
+    pwaInstalled: window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
     wsLive: false,
   };
 
   const $ = (sel, el = document) => el.querySelector(sel);
   const app = $('#app');
+  let deferredInstallPrompt = null;
 
   function toast(msg, kind = '') {
     const box = $('#toasts') || Object.assign(document.createElement('div'), { id: 'toasts', className: 'toasts' });
@@ -49,6 +51,40 @@
     n.textContent = msg;
     box.appendChild(n);
     setTimeout(() => n.remove(), 3500);
+  }
+
+  function showAppUpdateNotice() {
+    $('#app-update-notice')?.remove();
+    const notice = document.createElement('div');
+    notice.id = 'app-update-notice';
+    notice.className = 'app-update-notice';
+    notice.setAttribute('role', 'status');
+
+    const message = document.createElement('span');
+    message.textContent = 'A TURA update is ready.';
+    const reload = document.createElement('button');
+    reload.type = 'button';
+    reload.className = 'btn btn-accent';
+    reload.textContent = 'Refresh app';
+    reload.addEventListener('click', async () => {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration && registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      } catch (error) {
+        console.error('TURA could not activate the update:', error);
+      }
+      window.location.reload();
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'app-update-dismiss';
+    dismiss.textContent = 'Not now';
+    dismiss.addEventListener('click', () => notice.remove());
+
+    notice.append(message, reload, dismiss);
+    document.body.appendChild(notice);
   }
 
   function money(n) {
@@ -110,6 +146,68 @@
 
   function demoEnabled() {
     return !!(state.config && state.config.demo_mode);
+  }
+
+  function isAppleMobile() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function installCard(onDark = false) {
+    const label = state.pwaInstalled
+      ? 'TURA is installed'
+      : deferredInstallPrompt
+        ? 'Install TURA'
+        : isAppleMobile()
+          ? 'Add to Home Screen'
+          : 'Show install steps';
+    const instructions = isAppleMobile()
+      ? 'In Safari, tap Share, then choose Add to Home Screen.'
+      : 'Open your browser menu and choose Install TURA or Add to Home screen. On desktop, use the install icon in the address bar when available.';
+    return `<section class="install-card${onDark ? ' install-card-dark' : ''}" aria-labelledby="install-title">
+      <div class="install-card-copy">
+        <span class="install-mark" aria-hidden="true">↗</span>
+        <div><h2 id="install-title">Keep TURA one tap away</h2><p>Install the app icon and keep saved journey details close, even when your connection drops.</p></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btn-install-app" ${state.pwaInstalled ? 'disabled' : ''} aria-expanded="false">${label}</button>
+      <p class="install-help" id="install-help" hidden>${instructions}</p>
+    </section>`;
+  }
+
+  async function clearSavedTickets(ownerId) {
+    if (!Number.isInteger(ownerId) || ownerId < 1) return;
+    try {
+      await TuraStore.clearTicketsForOwner(ownerId);
+    } catch (error) {
+      toast('Could not clear this account’s saved tickets: ' + error.message, 'err');
+    }
+  }
+
+  function bindInstallAction() {
+    const button = $('#btn-install-app');
+    if (!button) return;
+    button.onclick = async () => {
+      if (state.pwaInstalled) return;
+      if (!deferredInstallPrompt) {
+        const help = $('#install-help');
+        if (help) {
+          help.hidden = !help.hidden;
+          button.setAttribute('aria-expanded', String(!help.hidden));
+        }
+        return;
+      }
+
+      const prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      try {
+        await prompt.prompt();
+        const result = await prompt.userChoice;
+        if (result.outcome === 'accepted') toast('TURA is being added to your device', 'ok');
+      } catch (error) {
+        toast('TURA could not open the install prompt: ' + error.message, 'err');
+      }
+      render();
+    };
   }
 
   function rememberOfflineUser(user) {
@@ -183,7 +281,7 @@
         <div class="splash-cta">
           <button class="btn btn-accent btn-block" id="btn-start">${t('getStarted')}</button>
           ${demoEnabled() ? `<button class="btn btn-ghost btn-block" id="btn-demo">${t('demoMode')}</button>` : ''}
-          <a class="btn btn-ghost btn-block" href="/screens/">Browse screen previews</a>
+          ${installCard(true)}
           <div class="splash-links"><span>${t('book')}</span><span>${t('travel')}</span><span>${t('explore')}</span></div>
         </div>
       </div><div class="splash-art" role="img" aria-label="TURA coach travelling across Uganda"></div><div class="splash-footer">SAFE TRAVEL <i></i> TRUSTED OPERATORS <i></i> ONE TAP. ONE JOURNEY.</div></section>`;
@@ -339,7 +437,7 @@
     return `${statusBar()}${topbar('QR Ticket')}
       <main class="page">
         <div class="card">
-          ${state.ticketCacheMode === 'cached' ? '<div class="offline-note">Saved on this device · verify the latest ticket status when online.</div>' : ''}
+          ${state.ticketCacheMode === 'cached' ? '<div class="offline-note">Saved on this device · details may be stale. A displayed QR cannot confirm that a ticket is unused or unrevoked; validation must happen online.</div>' : ''}
           <div class="ticket-hero">
             <div class="check">✓</div>
             <h2 style="color:var(--success)">${t('bookingConfirmed')}</h2>
@@ -351,6 +449,8 @@
               : '<span class="offline-qr-note">QR not saved — open this ticket while online once to save its code.</span>'}</div>
           <div class="ticket-meta">
             <div><span>Ticket No</span><strong>${escapeHtml(tk.ticket_no)}</strong></div>
+            <div><span>Status</span><strong>${escapeHtml(tk.status || 'valid')}</strong></div>
+            <div><span>Passenger</span><strong>${escapeHtml(tk.passenger_name || state.user && state.user.name || 'Traveler')}</strong></div>
             <div><span>Seat</span><strong>${escapeHtml(tk.seat)}</strong></div>
             <div><span>Route</span><strong>${escapeHtml(tk.route)}</strong></div>
             <div><span>Date</span><strong>${fmtDate(tk.departure)}</strong></div>
@@ -369,27 +469,51 @@
 
   function viewTickets() {
     const tab = state.ticketTab || 'upcoming';
+    const isPast = (ticket) => {
+      if (['used', 'expired', 'cancelled'].includes(String(ticket.status || '').toLowerCase())) return true;
+      const departure = Date.parse(ticket.departure || '');
+      return Number.isFinite(departure) && departure <= Date.now();
+    };
     const list = state.tickets.filter((tk) => {
-      const past = tk.status === 'used' || tk.status === 'expired' || tk.status === 'cancelled';
-      return tab === 'past' ? past : !past;
+      return tab === 'past' ? isPast(tk) : !isPast(tk);
     });
     const cards = list.map((tk) => `
-      <div class="trip-card">
-        <div class="head"><strong>${escapeHtml(tk.route)}</strong><span class="chip" style="background:${tk.status==='valid'?'#e8f0ff':'var(--success-soft)'};color:var(--navy)">${escapeHtml(tk.status)}</span></div>
-        <div style="color:var(--muted);font-size:13px">${fmtDate(tk.departure)} · ${fmtTime(tk.departure)} · Seat ${escapeHtml(tk.seat)}</div>
-        <button class="btn btn-outline" data-view-ticket="${tk.id}">View Ticket</button>
-      </div>`).join('') || '<div class="empty">No tickets in this tab.</div>';
+      <article class="ticket-card">
+        <div class="ticket-card-head">
+          <div class="ticket-route-mark" aria-hidden="true">T</div>
+          <div class="ticket-card-title"><h2>${escapeHtml(tk.route)}</h2><p>${escapeHtml(tk.operator || 'TURA journey')} · ${escapeHtml(tk.ticket_no)}</p></div>
+          <span class="ticket-status ${escapeHtml(String(tk.status || 'valid').toLowerCase())}">${escapeHtml(tk.status || 'valid')}</span>
+        </div>
+        <div class="ticket-card-details">
+          <div><span>Departure</span><strong>${fmtDate(tk.departure)} · ${fmtTime(tk.departure)}</strong></div>
+          <div><span>Seat</span><strong>${escapeHtml(tk.seat || '—')}</strong></div>
+          <div><span>Passenger</span><strong>${escapeHtml(tk.passenger_name || state.user && state.user.name || 'Traveler')}</strong></div>
+        </div>
+        <div class="ticket-card-foot">
+          <span class="ticket-local-state">${tk.qr_data_url ? 'QR + details saved on this device' : tk.owner_id ? 'Ticket details saved on this device' : 'Save this ticket for offline access'}</span>
+          <button class="btn btn-outline" data-view-ticket="${Number(tk.id)}">View ticket</button>
+        </div>
+      </article>`).join('') || `<div class="empty"><strong>${tab === 'past' ? 'No past journeys yet' : 'No upcoming journeys yet'}</strong><p>${state.online ? 'Your confirmed tickets will appear here.' : 'Tickets saved on this device will appear here.'}</p></div>`;
     return `${statusBar()}${topbar('My Tickets')}
       <main class="page">
-        <div class="offline-note" role="status">
+        <div class="offline-note ticket-pack-note" role="status">
           ${state.ticketCacheMode === 'cached'
-            ? `Offline Journey Pack · showing saved tickets${state.tickets[0] && state.tickets[0].cached_at ? ` · saved ${fmtDate(state.tickets[0].cached_at)} ${fmtTime(state.tickets[0].cached_at)}` : ''}. Ticket and route details may be stale.`
-            : 'Offline Journey Pack · tickets and itinerary are saved on this device when available.'}
+            ? `Offline Journey Pack · showing ${state.tickets.length} locally saved ticket(s). Trip details may be out of date; QR codes cannot confirm current validity offline.`
+            : 'Offline Journey Pack · tickets and QR images save automatically on this device. Offline details may be out of date; validation always needs a connection.'}
         </div>
-        <div class="tabs">
-          <button class="${tab==='upcoming'?'active':''}" data-ttab="upcoming">${t('upcoming')}</button>
-          <button class="${tab==='past'?'active':''}" data-ttab="past">${t('past')}</button>
+        <div class="tabs ticket-tabs" aria-label="Filter tickets">
+          <button aria-pressed="${tab === 'upcoming'}" class="${tab==='upcoming'?'active':''}" data-ttab="upcoming">${t('upcoming')} <span>${state.tickets.filter((ticket) => !isPast(ticket)).length}</span></button>
+          <button aria-pressed="${tab === 'past'}" class="${tab==='past'?'active':''}" data-ttab="past">${t('past')} <span>${state.tickets.filter(isPast).length}</span></button>
         </div>
+        <details class="card ticket-lookup">
+          <summary>Lost access? Find a ticket by number</summary>
+          <form id="lookup-form" novalidate>
+            <div class="field"><label for="lookup-no">Ticket number</label><input id="lookup-no" placeholder="TURA2611220001" autocomplete="off" autocapitalize="characters" required /></div>
+            <div class="field"><label for="lookup-phone">Phone used to book</label><input id="lookup-phone" placeholder="+256..." inputmode="tel" autocomplete="tel" required /></div>
+            <button class="btn btn-primary btn-block" type="submit" id="lookup-submit">Find ticket</button>
+            <p class="lookup-note">Works without signing in. You need both the ticket number and the booking phone number.</p>
+          </form>
+        </details>
         ${cards}
       </main>${bottomNav('tickets')}`;
   }
@@ -464,10 +588,10 @@
             <div><strong>${u ? escapeHtml(u.name) : 'Guest'}</strong><div style="color:var(--muted);font-size:13px">${u ? escapeHtml(u.phone) + ' · ' + u.role : 'Not signed in'}</div>${state.offlineSession ? '<div class="chip">Offline read-only</div>' : ''}</div>
           </div>
         </div>
+        ${installCard()}
         <div class="card search-card">
           <button class="btn btn-outline btn-block" id="btn-open-tour">Guided tour</button>
           <button class="btn btn-outline btn-block" id="btn-help-page">Help & demo tips</button>
-          <a class="btn btn-outline btn-block" href="/screens/">Browse screen previews</a>
           <button class="btn btn-outline btn-block" id="btn-lang">${TuraI18n.getLang()==='en' ? 'Switch to Luganda' : 'Switch to English'}</button>
           ${u && (u.role==='operator'||u.role==='admin') ? '<button class="btn btn-primary btn-block" id="btn-ops">Operator dashboard</button>' : ''}
           ${u && (u.role==='driver'||u.role==='admin') ? '<button class="btn btn-primary btn-block" id="btn-driver">Driver console</button>' : ''}
@@ -525,6 +649,9 @@
         : '<p class="empty">This trip has no tracking history yet. Use the assigned driver console to advance the demo tracker.</p>'}
     </section>` : '';
     const diagnostics = state.opsDiagnostics || {};
+    const backupActions = state.config && state.config.backup_export_enabled
+      ? '<button class="btn btn-outline" id="btn-backup">Backup DB</button><button class="btn btn-outline" id="btn-download-backup">Download backup</button>'
+      : '<span class="chip">Database backups disabled in demo mode</span>';
     return `${statusBar()}${topbar('Operator')}
       <main class="page page-wide">
         <div class="kpi-grid">
@@ -597,8 +724,7 @@
         ${state.opsLoadError ? `<div class="offline-note" role="alert">Dashboard data is stale: ${escapeHtml(state.opsLoadError)}. Use Refresh to retry.</div>` : ''}
         <div class="section-title"><span>Audit log</span><div class="ops-actions">
           <button class="btn btn-outline" id="btn-settlements">Prepare mock settlements</button>
-          <button class="btn btn-outline" id="btn-backup">Backup DB</button>
-          <button class="btn btn-outline" id="btn-download-backup">Download backup</button>
+          ${backupActions}
         </div></div>
         <div class="card"><ul class="audit-list">${audit || '<li>No events yet</li>'}</ul></div>
         <div class="system-status"><span>Database: ${escapeHtml(diagnostics.database || 'unknown')}</span><span>WebSocket clients: ${Number(diagnostics.websocket_connections || 0)}</span><span>Last refresh: ${state.opsLive ? fmtTime(state.opsLive.updated_at) : '—'}</span></div>
@@ -809,6 +935,7 @@
 
   async function bindView(route) {
     if (route === 'splash') {
+      bindInstallAction();
       const start = $('#btn-start');
       if (start) start.onclick = () => { if (state.user) setHash('home'); else authModal('login'); };
       const demo = $('#btn-demo');
@@ -970,15 +1097,21 @@
         if (state.online && !state.offlineSession) {
           try {
             const res = await api('/api/tickets/mine');
-            state.tickets = res.tickets || [];
+            const tickets = res.tickets || [];
+            const cachedTickets = await Promise.all(tickets.map((ticket) => cacheTicket(ticket, true, true)));
+            state.tickets = cachedTickets;
             state.ticketCacheMode = 'live';
-            await Promise.all(state.tickets.map((tk) => cacheTicket(tk, false)));
+            const missingQr = cachedTickets.filter((ticket) => !ticket.qr_data_url).length;
+            const notSaved = cachedTickets.filter((ticket) => !ticket.cached_offline).length;
+            if (missingQr || notSaved) {
+              toast(`${notSaved} ticket(s) could not be saved locally; ${missingQr} QR image(s) are unavailable offline.`, 'err');
+            }
           } catch (e) {
-              if (e.status && e.status < 500) throw e;
-              if (!e.status) state.online = false;
-              else toast('Ticket service is unavailable; showing saved tickets: ' + e.message, 'err');
-              state.tickets = await TuraStore.getAll('tickets', state.user.id);
-              state.ticketCacheMode = 'cached';
+            if (e.status && e.status < 500) throw e;
+            if (!e.status) state.online = false;
+            else toast('Ticket service is unavailable; showing saved tickets: ' + e.message, 'err');
+            state.tickets = await TuraStore.getAll('tickets', state.user.id);
+            state.ticketCacheMode = 'cached';
             if (!state.tickets.length) toast('No saved tickets are available on this device', 'err');
           }
         } else {
@@ -987,6 +1120,26 @@
         }
       }
       document.querySelectorAll('[data-ttab]').forEach((b) => b.onclick = () => { state.ticketTab = b.dataset.ttab; render(); });
+      const lookupForm = $('#lookup-form');
+      if (lookupForm) lookupForm.onsubmit = async (event) => {
+        event.preventDefault();
+        const ticketNo = $('#lookup-no').value.trim();
+        const phone = $('#lookup-phone').value.trim();
+        if (!ticketNo || !phone) { toast('Enter the ticket number and booking phone', 'err'); return; }
+        const submit = $('#lookup-submit');
+        submit.disabled = true;
+        try {
+          const res = await api('/api/tickets/lookup', { method: 'POST', body: { ticket_no: ticketNo, phone } });
+          state.lastTicket = res.ticket;
+          state.ticketCacheMode = 'live';
+          toast('Ticket found', 'ok');
+          setHash('ticket');
+        } catch (err) {
+          toast(err.message, 'err');
+        } finally {
+          submit.disabled = false;
+        }
+      };
       document.querySelectorAll('[data-view-ticket]').forEach((b) => b.onclick = () => {
         state.lastTicket = state.tickets.find((t) => t.id === Number(b.dataset.viewTicket));
         state.ticketCacheMode = state.lastTicket && state.lastTicket.owner_id ? 'cached' : 'live';
@@ -1058,26 +1211,29 @@
       };
     }
     if (route === 'more') {
+      bindInstallAction();
       const tour = $('#btn-open-tour'); if (tour) tour.onclick = () => TuraTour.openHelp();
       const help = $('#btn-help-page'); if (help) help.onclick = () => setHash('help');
       const lang = $('#btn-lang'); if (lang) lang.onclick = () => { TuraI18n.setLang(TuraI18n.getLang()==='en'?'lg':'en'); render(); };
       const ops = $('#btn-ops'); if (ops) ops.onclick = () => setHash('ops');
       const drv = $('#btn-driver'); if (drv) drv.onclick = () => setHash('driver');
       const lo = $('#btn-logout'); if (lo) lo.onclick = async () => {
+        const ownerId = state.user ? state.user.id : null;
         try {
           if (!state.online || state.offlineSession) {
             localStorage.setItem('tura_logout_pending', '1');
+            if (ownerId) localStorage.setItem('tura_logout_owner', String(ownerId));
             localStorage.removeItem('tura_offline_user');
           } else {
             await api('/api/auth/logout', { method: 'POST' });
             localStorage.removeItem('tura_logout_pending');
+            localStorage.removeItem('tura_logout_owner');
             localStorage.removeItem('tura_offline_user');
             state.trackingOptionsLoaded = false;
             state.trackingTripId = null;
             state.tracking = null;
           }
-          try { await TuraStore.clearStore('tickets'); }
-          catch (storageError) { toast('Could not clear saved tickets on this device: ' + storageError.message, 'err'); }
+          await clearSavedTickets(ownerId);
           TuraWS.disconnect();
           state.user = null;
           state.offlineSession = false;
@@ -1400,21 +1556,33 @@
     });
   }
 
-  async function cacheTicket(ticket, includeQr) {
+  async function cacheTicket(ticket, includeQr, quiet = false) {
     if (!state.user || state.offlineSession) throw new Error('Sign in online to save this ticket');
     const ownerId = state.user.id;
     const saved = { ...ticket, owner_id: ownerId };
+    if (includeQr && !saved.qr_data_url && saved.id) {
+      try {
+        const existing = await TuraStore.get('tickets', Number(saved.id));
+        if (existing && existing.owner_id === ownerId && existing.qr_data_url) {
+          saved.qr_data_url = existing.qr_data_url;
+        }
+      } catch (error) {
+        if (!quiet) toast('Previously saved ticket data could not be read: ' + error.message, 'err');
+      }
+    }
     if (includeQr && !saved.qr_data_url && state.online && saved.id) {
       try {
         const image = await api(`/api/tickets/${Number(saved.id)}/qr.png`);
         saved.qr_data_url = await blobToDataUrl(image);
-      } catch (e) { toast('QR image could not be cached: ' + e.message, 'err'); }
+      } catch (e) {
+        if (!quiet) toast('QR image could not be cached: ' + e.message, 'err');
+      }
     }
     try {
       return { ...(await TuraStore.put('tickets', saved, ownerId)), cached_offline: true };
     } catch (e) {
-      toast('Ticket remains available in this view, but local offline storage failed: ' + e.message, 'err');
-      return { ...saved, cached_offline: false };
+      if (!quiet) toast('Ticket remains available in this view, but local offline storage failed: ' + e.message, 'err');
+      return { ...saved, cached_offline: false, cache_error: e.message };
     }
   }
 
@@ -1606,10 +1774,61 @@
   }
 
   async function boot() {
+    if ('serviceWorker' in navigator) {
+      const hadController = !!navigator.serviceWorker.controller;
+      let updateNoticeShown = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || updateNoticeShown) return;
+        updateNoticeShown = true;
+        showAppUpdateNotice();
+      });
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        const notifyIfWaiting = () => {
+          if (!registration.waiting || !navigator.serviceWorker.controller || updateNoticeShown) return;
+          updateNoticeShown = true;
+          showAppUpdateNotice();
+        };
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          if (!worker) return;
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'installed') notifyIfWaiting();
+          });
+        });
+        notifyIfWaiting();
+
+        const checkForUpdate = () => {
+          if (!navigator.onLine || document.visibilityState !== 'visible') return;
+          registration.update().then(notifyIfWaiting).catch((error) => {
+            console.error('TURA update check failed:', error);
+          });
+        };
+        window.addEventListener('online', checkForUpdate);
+        document.addEventListener('visibilitychange', checkForUpdate);
+        window.setInterval(checkForUpdate, 30 * 60 * 1000);
+      }).catch((e) => {
+        toast('Offline app shell could not be installed: ' + e.message, 'err');
+      });
+    }
+
+    const launchSearch = new URLSearchParams(location.search);
+    const launchOrigin = (launchSearch.get('origin') || '').trim();
+    const launchDestination = (launchSearch.get('destination') || '').trim();
+    if (launchOrigin && launchDestination && launchOrigin.length <= 80 && launchDestination.length <= 80) {
+      state.search.origin = launchOrigin;
+      state.search.destination = launchDestination;
+      const launchDate = launchSearch.get('date') || '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) {
+        const date = new Date(`${launchDate}T00:00:00`);
+        if (!Number.isNaN(date.getTime()) && localDateISO(date) === launchDate) {
+          state.search.date = launchDate;
+        }
+      }
+    }
     try {
       state.config = await api('/api/config');
     } catch (e) {
-      state.config = { fees: {}, features: {}, demo_mode: false };
+      state.config = { fees: {}, features: {}, demo_mode: false, backup_export_enabled: false };
       if (!e.status) state.online = false;
       toast('Configuration could not be loaded: ' + e.message, 'err');
     }
@@ -1621,6 +1840,8 @@
       try {
         await api('/api/auth/logout', { method: 'POST' });
         localStorage.removeItem('tura_logout_pending');
+        await clearSavedTickets(Number(localStorage.getItem('tura_logout_owner')));
+        localStorage.removeItem('tura_logout_owner');
       } catch (e) {
         state.online = false;
         toast('Pending logout will finish after reconnecting: ' + e.message, 'err');
@@ -1646,11 +1867,11 @@
         if (localStorage.getItem('tura_logout_pending') === '1') {
           await api('/api/auth/logout', { method: 'POST' });
           localStorage.removeItem('tura_logout_pending');
+          await clearSavedTickets(Number(localStorage.getItem('tura_logout_owner')));
+          localStorage.removeItem('tura_logout_owner');
           state.user = null;
           state.offlineSession = false;
           localStorage.removeItem('tura_offline_user');
-          try { await TuraStore.clearStore('tickets'); }
-          catch (storageError) { toast('Could not clear saved tickets on this device: ' + storageError.message, 'err'); }
           state.trackingOptionsLoaded = false;
           state.trackingTripId = null;
           state.tracking = null;
@@ -1673,12 +1894,34 @@
       } catch (e) { toast('Could not reconnect to TURA: ' + e.message, 'err'); }
       render();
     });
-    window.addEventListener('offline', () => {
+    window.addEventListener('offline', async () => {
       state.online = false;
       state.trackingOptionsLoaded = false;
+      if (state.user) {
+        try {
+          state.tickets = await TuraStore.getAll('tickets', state.user.id);
+          state.ticketCacheMode = 'cached';
+          if (state.lastTicket) {
+            const cachedTicket = state.tickets.find((ticket) => ticket.id === state.lastTicket.id);
+            if (cachedTicket) state.lastTicket = cachedTicket;
+          }
+        } catch (error) {
+          toast('Saved tickets could not be loaded offline: ' + error.message, 'err');
+        }
+      }
       render();
     });
     window.addEventListener('hashchange', render);
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      if (state.route === 'splash' || state.route === 'more') render();
+    });
+    window.addEventListener('appinstalled', () => {
+      state.pwaInstalled = true;
+      deferredInstallPrompt = null;
+      if (state.route === 'splash' || state.route === 'more') render();
+    });
 
     if (state.user && !state.offlineSession) TuraWS.connect([]);
     TuraWS.onEvent((msg) => {
@@ -1708,11 +1951,6 @@
       await render();
     }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((e) => {
-        toast('Offline app shell could not be installed: ' + e.message, 'err');
-      });
-    }
   }
 
   boot();

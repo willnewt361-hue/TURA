@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="description" content="TURA help centre: booking, payment, tickets, boarding and support.">
+  <title>Help centre | TURA</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/pwa-icon-180.png">
+  <link rel="stylesheet" href="/css/demo.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="TURA home">
+      <img src="/assets/logo.svg" alt="">
+      <span>TURA<small>ONE TAP. ONE JOURNEY.</small></span>
+    </a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <a class="button button-quiet" href="/#routes">Routes</a>
+      <a class="button button-quiet" href="/#how-it-works">How it works</a>
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button" href="/pages/login.html">Demo access</a>
+      <a class="button button-primary" href="/app/">Open app <span aria-hidden="true">→</span></a>
+    </nav>
+  </header>
+
+  <main class="wrap doc-page">
+    <span class="eyebrow">SUPPORT</span>
+    <h1>How can we help?</h1>
+    <p class="doc-lede">Answers to the questions travellers ask most. TURA is a booking layer: the transport contract is between you and the bus operator.</p>
+
+    <div class="doc-grid" aria-label="Quick links">
+      <a class="doc-card" href="/app/#/tickets"><h3>🎫 My tickets</h3><p>Open a saved ticket or find one from your account.</p></a>
+      <a class="doc-card" href="/app/#/tracking"><h3>📍 Track a trip</h3><p>See the latest progress for a booked journey.</p></a>
+      <a class="doc-card" href="/app/#/home"><h3>🔎 Search buses</h3><p>Compare published departures and fares.</p></a>
+    </div>
+
+    <section class="doc-section" aria-labelledby="faq-title">
+      <h2 id="faq-title">Frequently asked questions</h2>
+      <div class="doc-faq">
+        <details>
+          <summary>How do I book a ticket?</summary>
+          <p>Sign in, search your route and date, choose a departure, pick a seat, enter passenger details and complete the mock checkout in this demo build. Your e-ticket appears immediately.</p>
+        </details>
+        <details>
+          <summary>Do I need an account?</summary>
+          <p>Yes in this build. Guest booking by reference and phone is planned for a later release; until then bookings are tied to the signed-in account.</p>
+        </details>
+        <details>
+          <summary>Which payment methods are accepted?</summary>
+          <p>This build uses a <strong>mock payment provider</strong>. No mobile-money wallet or card is charged. The MTN MoMo integration boundary exists, but live payments are disabled until configured.</p>
+        </details>
+        <details>
+          <summary>How long are my seats held?</summary>
+          <p>Seats are locked for a short window (120 seconds by default) while you check out. Expired locks are released automatically.</p>
+        </details>
+        <details>
+          <summary>How do I board?</summary>
+          <p>Arrive early with your ID and show the QR code on your ticket. Ticket validation is online-only and each ticket can be used once.</p>
+        </details>
+        <details>
+          <summary>Can I cancel or change my booking?</summary>
+          <p>Cancellation and refunds are not enabled in this demo. Contact the operator for real-world changes once live operations begin.</p>
+        </details>
+        <details>
+          <summary>I paid but didn't get a ticket</summary>
+          <p>Open <strong>My tickets</strong>. If it still does not appear, keep your payment reference and contact support. In this demo, payments are simulated and can be retried safely.</p>
+        </details>
+        <details>
+          <summary>Is the tracking live?</summary>
+          <p>Not yet. Trip progress is a <strong>simulated corridor tracker</strong> advanced by the driver or operator, not vehicle GPS.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="doc-section" id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title">Contact us</h2>
+      <div class="doc-grid">
+        <article class="doc-card">
+          <h3>Support</h3>
+          <p>Email: <a href="mailto:support@tura.example">support@tura.example</a></p>
+          <p>Phone: +256 700 000 000</p>
+          <p>Daily 06:00–22:00 EAT</p>
+        </article>
+        <article class="doc-card">
+          <h3>Demo notice</h3>
+          <p>These contact details are placeholders. Replace them with your real support channels before inviting passengers.</p>
+          <p><a href="/pages/requirements.html">Read the go-live requirements →</a></p>
+        </article>
+        <article class="doc-card">
+          <h3>Safety</h3>
+          <p>The SOS button creates an internal operations alert only. It does not contact police or emergency services. In a real emergency, call local emergency numbers.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer home-footer">
+      <span>TURA · HTML, CSS, JavaScript and FastAPI</span>
+      <div><a href="/pages/legal.html">Terms</a> · <a href="/pages/legal.html#privacy">Privacy</a> · <a href="/pages/requirements.html">Requirements</a> · <a href="/pages/login.html">Demo access</a></div>
+    </footer>
+  </main>
+
+  <script src="/js/demo.js"></script>
+</body>
+</html>

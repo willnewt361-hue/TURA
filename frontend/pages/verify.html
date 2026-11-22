@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="description" content="Check whether a TURA ticket is valid and unused. Read-only verification.">
+  <title>Verify a ticket | TURA</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/pwa-icon-180.png">
+  <link rel="stylesheet" href="/css/demo.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="TURA home">
+      <img src="/assets/logo.svg" alt="">
+      <span>TURA<small>ONE TAP. ONE JOURNEY.</small></span>
+    </a>
+    <nav class="top-actions" aria-label="Main navigation">
+      <a class="button button-quiet" href="/pages/help.html">Help</a>
+      <button class="button button-quiet" type="button" data-theme-toggle>Dark mode</button>
+      <a class="button button-primary" href="/app/">Open app <span aria-hidden="true">→</span></a>
+    </nav>
+  </header>
+
+  <main class="wrap doc-page">
+    <span class="eyebrow">TICKET CHECK</span>
+    <h1>Verify a ticket</h1>
+    <p class="doc-lede">Paste the ticket token from a QR code, or open this page with <code>?token=…</code>. This check is read-only: it does not mark the ticket used. A driver or operator still validates the ticket at boarding.</p>
+
+    <form class="panel content-panel" id="verify-form" novalidate>
+      <div class="field">
+        <label for="token">Ticket token</label>
+        <textarea id="token" name="token" rows="4" maxlength="4096" required placeholder="Paste the long token encoded in the ticket QR code"></textarea>
+      </div>
+      <div class="doc-actions">
+        <button class="button button-primary" type="submit" id="verify-submit">Check ticket</button>
+        <button class="button" type="button" id="verify-clear">Clear</button>
+      </div>
+      <p class="status" role="status" aria-live="polite" id="verify-status">Waiting for a token.</p>
+    </form>
+
+    <section class="doc-section" id="result-section" hidden aria-live="polite">
+      <h2 id="result-title">Result</h2>
+      <div class="doc-grid" id="result-grid"></div>
+    </section>
+
+    <section class="doc-section">
+      <h2>How verification works</h2>
+      <div class="doc-grid">
+        <article class="doc-card"><h3>Signed token</h3><p>Each QR contains an HMAC-SHA256 signed payload. Editing the token invalidates the signature.</p></article>
+        <article class="doc-card"><h3>Single use</h3><p>Only a driver or operator can validate a ticket, and a validated ticket cannot be reused.</p></article>
+        <article class="doc-card"><h3>No personal data</h3><p>Verification never returns a passenger phone number or email address.</p></article>
+      </div>
+    </section>
+
+    <footer class="footer home-footer">
+      <span>TURA · HTML, CSS, JavaScript and FastAPI</span>
+      <div><a href="/pages/help.html">Help</a> · <a href="/pages/legal.html">Terms &amp; privacy</a> · <a href="/pages/login.html">Demo access</a></div>
+    </footer>
+  </main>
+
+  <script src="/js/demo.js"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('verify-form');
+      const tokenField = document.getElementById('token');
+      const status = document.getElementById('verify-status');
+      const submit = document.getElementById('verify-submit');
+      const clear = document.getElementById('verify-clear');
+      const section = document.getElementById('result-section');
+      const grid = document.getElementById('result-grid');
+      const title = document.getElementById('result-title');
+
+      function setStatus(message, kind) {
+        status.textContent = message;
+        status.classList.toggle('error', kind === 'error');
+      }
+
+      async function csrfToken() {
+        const match = document.cookie.match(/(?:^|; )tura_csrf=([^;]*)/);
+        if (match) return decodeURIComponent(match[1]);
+        const res = await fetch('/api/auth/csrf', { credentials: 'include' });
+        const data = await res.json();
+        return data.csrf;
+      }
+
+      function row(label, value) {
+        const cell = document.createElement('article');
+        cell.className = 'doc-card';
+        const h = document.createElement('h3');
+        h.textContent = label;
+        const p = document.createElement('p');
+        p.textContent = value || '—';
+        cell.append(h, p);
+        return cell;
+      }
+
+      async function verify(token) {
+        submit.disabled = true;
+        setStatus('Checking…');
+        section.hidden = true;
+        try {
+          const csrf = await csrfToken();
+          const res = await fetch('/api/tickets/verify', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+            body: JSON.stringify({ token }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.detail || res.statusText);
+          setStatus(data.message || 'Checked.', data.valid ? '' : 'error');
+          title.textContent = data.valid ? 'Valid ticket' : 'Not valid';
+          grid.replaceChildren(
+            row('Status', (data.status || 'unknown').toUpperCase()),
+            row('Ticket number', data.ticket_no),
+            row('Route', data.route),
+            row('Seat', data.seat),
+            row('Departure', data.departure ? new Date(data.departure).toLocaleString() : ''),
+            row('Expires', data.expires_at ? new Date(data.expires_at).toLocaleString() : '')
+          );
+          section.hidden = false;
+        } catch (error) {
+          setStatus('Verification failed: ' + error.message, 'error');
+        } finally {
+          submit.disabled = false;
+        }
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const token = tokenField.value.trim();
+        if (token.length < 10) {
+          setStatus('Paste a complete ticket token first.', 'error');
+          return;
+        }
+        verify(token);
+      });
+
+      clear.addEventListener('click', () => {
+        tokenField.value = '';
+        section.hidden = true;
+        setStatus('Waiting for a token.');
+        tokenField.focus();
+      });
+
+      const fromUrl = new URLSearchParams(location.search).get('token');
+      if (fromUrl) {
+        tokenField.value = fromUrl;
+        verify(fromUrl.trim());
+      }
+    })();
+  </script>
+</body>
+</html>

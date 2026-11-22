@@ -129,3 +129,50 @@ def seed_if_empty(db: Session) -> None:
             trip_i += 1
 
     db.commit()
+
+
+def ensure_rolling_timetable(db: Session, days: int = 8) -> int:
+    """Keep the demo timetable usable: add missing departures for the next days.
+
+    Only runs in demo mode, so a live operator's schedule is never invented.
+    """
+    settings = get_settings()
+    if not settings.demo_mode:
+        return 0
+    routes = db.query(Route).order_by(Route.id).all()
+    buses = db.query(Bus).order_by(Bus.id).all()
+    if not routes or not buses:
+        return 0
+    driver = db.query(User).filter(User.role == "driver", User.status == "active").first()
+    now = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    created = 0
+    for day in range(days):
+        for ri, route in enumerate(routes):
+            dep_hour = 6 + (ri % 4) * 3
+            departure = (now + timedelta(days=day)).replace(hour=dep_hour)
+            if departure <= now:
+                continue
+            exists = (
+                db.query(Trip.id)
+                .filter(Trip.route_id == route.id, Trip.departure == departure)
+                .first()
+            )
+            if exists:
+                continue
+            bus = buses[(day * len(routes) + ri) % len(buses)]
+            db.add(
+                Trip(
+                    bus_id=bus.id,
+                    route_id=route.id,
+                    departure=departure,
+                    arrival=departure + timedelta(minutes=route.duration_minutes),
+                    status="scheduled",
+                    active=True,
+                    fare_ugx=route.base_fare_ugx,
+                    driver_id=driver.id if driver else None,
+                )
+            )
+            created += 1
+    if created:
+        db.commit()
+    return created

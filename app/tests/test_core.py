@@ -287,8 +287,8 @@ def test_websocket_requires_auth_and_rejects_customer_ops_room(client):
     operator_id = operator.json()["user"]["id"]
     with client.websocket_connect(f"/ws?rooms=ops&user_id={customer_id}") as websocket:
         assert json.loads(websocket.receive_text())["event"] == "connected"
-        assert websocket in manager.user_sockets[operator_id]
-        assert websocket not in manager.user_sockets.get(customer_id, set())
+        assert len(manager.user_sockets[operator_id]) == 1
+        assert customer_id not in manager.user_sockets
 
 
 def test_driver_cannot_operate_unassigned_trip(client):
@@ -421,3 +421,110 @@ def test_operator_can_publish_bookable_bus_route_and_trip(client):
         headers=headers,
     )
     assert overlap.status_code == 409
+
+
+def test_rolling_timetable_keeps_demo_schedule_fresh(client):
+    """Demo mode must always have bookable departures for the coming days."""
+    from app.db.seed import ensure_rolling_timetable
+    from app.db.session import SessionLocal
+
+    db = SessionLocal()
+    try:
+        created = ensure_rolling_timetable(db, days=3)
+        assert created >= 0
+        # Idempotent: running again must not duplicate the same departures.
+        again = ensure_rolling_timetable(db, days=3)
+        assert again == 0
+    finally:
+        db.close()
+
+    results = client.get(
+        "/api/trips/search",
+        params={"origin": "Kampala", "destination": "Gulu"},
+    )
+    assert results.status_code == 200
+    assert results.json()["trips"], "Demo timetable should expose upcoming departures"
+
+
+def test_public_ticket_verification_is_read_only(client):
+    login = client.post("/api/auth/demo-login", json={"role": "customer"}, headers=_headers(client))
+    headers = {"X-CSRF-Token": login.json()["csrf"]}
+
+    trip = client.get(
+        "/api/trips/search", params={"origin": "Kampala", "destination": "Gulu"}
+    ).json()["trips"][0]
+    seat = next(
+        s for s in client.get(f"/api/trips/{trip['id']}/seats").json()["seats"]
+        if s["status"] == "available"
+    )
+    client.post(f"/api/trips/{trip['id']}/seats/lock", json={"seat_id": seat["id"]}, headers=headers)
+    booking = client.post(
+        "/api/bookings",
+        json={
+            "trip_id": trip["id"],
+            "seat_id": seat["id"],
+            "passenger_name": "Verify Tester",
+            "passenger_phone": "+256700000001",
+            "idempotency_key": "verify-read-only-1",
+        },
+        headers=headers,
+    ).json()["booking"]
+    payment = client.post(
+        "/api/payments/charge",
+        json={
+            "booking_id": booking["id"],
+            "method": "mobile_money",
+            "idempotency_key": "verify-read-only-pay-1",
+        },
+        headers=headers,
+    ).json()
+    token = payment["ticket"]["qr_token"]
+
+    public_headers = _headers(client)
+    first = client.post("/api/tickets/verify", json={"token": token}, headers=public_headers)
+    assert first.status_code == 200
+    body = first.json()
+    assert body["valid"] is True
+    assert body["status"] == "valid"
+    # No passenger contact details leak through public verification.
+    serialized = json.dumps(body).lower()
+    assert "+256700000001" not in serialized
+    assert "verify tester" not in serialized
+
+    # Verification must not consume the ticket.
+    second = client.post("/api/tickets/verify", json={"token": token}, headers=public_headers)
+    assert second.json()["status"] == "valid"
+
+    bad = client.post(
+        "/api/tickets/verify", json={"token": "tampered-token-value"}, headers=public_headers
+    )
+    assert bad.json()["valid"] is False
+
+
+def test_public_pages_and_seo_routes(client):
+    for path in ("/help", "/legal", "/requirements", "/verify"):
+        response = client.get(path)
+        assert response.status_code == 200, path
+        assert "text/html" in response.headers["content-type"]
+
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "Sitemap:" in robots.text
+
+    sitemap = client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert "<urlset" in sitemap.text
+    assert "/verify" in sitemap.text
+
+
+def test_login_lockout_after_repeated_failures(client):
+    from app.api import auth as auth_module
+
+    auth_module._login_failures.clear()
+    payload = {"phone": "+256799999999", "password": "wrong-password"}
+    for _ in range(auth_module.get_settings().login_max_failures):
+        response = client.post("/api/auth/login", json=payload, headers=_headers(client))
+        assert response.status_code in (401, 429)
+    blocked = client.post("/api/auth/login", json=payload, headers=_headers(client))
+    assert blocked.status_code == 429
+    auth_module._login_failures.clear()

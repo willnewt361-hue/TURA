@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import secrets
 from datetime import datetime
 from typing import Optional
 
@@ -26,13 +27,12 @@ def issue_ticket(db: Session, booking: Booking, actor_id: int) -> Ticket:
     if booking.status != "paid":
         raise HTTPException(400, "Booking must be paid before ticket issue")
 
-    seq = (db.query(Ticket).count() or 0) + 1
-    ticket_no = make_ticket_no(seq)
     issued = datetime.utcnow()
     expires = default_ticket_expiry()
-    # Create stub then sign with real id
+    # Insert with a temporary unique number, then derive the final ticket number
+    # from the row id. COUNT()+1 collides under concurrent checkouts.
     ticket = Ticket(
-        ticket_no=ticket_no,
+        ticket_no=f"TMP-{secrets.token_hex(12)}",
         booking_id=booking.id,
         signed_payload="",
         issued_at=issued,
@@ -41,6 +41,8 @@ def issue_ticket(db: Session, booking: Booking, actor_id: int) -> Ticket:
     )
     db.add(ticket)
     db.flush()
+    ticket_no = make_ticket_no(ticket.id)
+    ticket.ticket_no = ticket_no
 
     payload = {
         "ticket_id": ticket.id,
@@ -79,7 +81,7 @@ def validate_ticket(
     actor_id: int,
 ) -> dict:
     ok, body, reason = verify_ticket_token(token)
-    if not ok and reason == "Invalid signature":
+    if not ok and reason != "Ticket expired":
         audit(db, "ticket.validation_failed", actor_id=actor_id, metadata={"reason": reason})
         raise HTTPException(400, reason)
     if not body:

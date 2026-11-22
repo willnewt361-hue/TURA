@@ -43,6 +43,126 @@
     if (!todayField.value) todayField.value = localToday;
   }
 
+  const routeForm = document.querySelector('[data-route-search]');
+  if (routeForm) {
+    const originSelect = routeForm.querySelector('[data-route-origin]');
+    const destinationSelect = routeForm.querySelector('[data-route-destination]');
+    const dateField = routeForm.elements.date;
+    const submitButton = routeForm.querySelector('[data-route-submit]');
+    const routeStatus = routeForm.querySelector('[data-route-status]');
+    const routeGrid = document.querySelector('[data-route-grid]');
+    let origins = [];
+    let destinations = [];
+
+    const setStatus = (message, isError = false) => {
+      routeStatus.textContent = message;
+      routeStatus.classList.toggle('error', isError);
+    };
+    const fillSelect = (select, values, preferred, placeholder) => {
+      select.replaceChildren();
+      const empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = values.length ? placeholder : 'No routes available';
+      select.appendChild(empty);
+      values.forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      select.disabled = values.length === 0;
+      select.value = values.includes(preferred) ? preferred : values[0] || '';
+    };
+
+    const loadRouteOptions = async () => {
+      try {
+        if (!window.TuraAPI) throw new Error('TURA API client is unavailable');
+        const cities = await TuraAPI.api('/api/trips/cities');
+        origins = Array.isArray(cities.origins) ? cities.origins.filter((city) => typeof city === 'string') : [];
+        destinations = Array.isArray(cities.destinations)
+          ? cities.destinations.filter((city) => typeof city === 'string')
+          : [];
+        const query = new URLSearchParams(location.search);
+        fillSelect(originSelect, origins, query.get('origin') || 'Kampala', 'Choose an origin');
+        fillSelect(destinationSelect, destinations, query.get('destination') || 'Gulu', 'Choose a destination');
+        submitButton.disabled = !origins.length || !destinations.length;
+        setStatus(
+          submitButton.disabled
+            ? 'No routes are published yet. Please check back later.'
+            : 'Choose a route and date to continue in the connected app.'
+        );
+
+        routeGrid.replaceChildren();
+        try {
+          const popular = await TuraAPI.api('/api/trips/popular');
+          const routes = Array.isArray(popular.routes) ? popular.routes : [];
+          routes.forEach((route) => {
+            if (typeof route.origin !== 'string' || typeof route.destination !== 'string') return;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'route-card';
+            button.setAttribute('aria-label', `Search departures from ${route.origin} to ${route.destination}`);
+            const label = document.createElement('span');
+            label.textContent = 'Configured route';
+            const name = document.createElement('strong');
+            name.textContent = `${route.origin} → ${route.destination}`;
+            const action = document.createElement('em');
+            action.textContent = 'Check departures →';
+            button.append(label, name, action);
+            button.addEventListener('click', () => {
+              if (origins.includes(route.origin)) originSelect.value = route.origin;
+              if (destinations.includes(route.destination)) destinationSelect.value = route.destination;
+              document.querySelector('#route-search').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            routeGrid.appendChild(button);
+          });
+          if (!routes.length) routeGrid.textContent = 'No routes have been configured yet.';
+        } catch (error) {
+          routeGrid.textContent = `Route suggestions are unavailable: ${error.message}`;
+        }
+      } catch (error) {
+        if (routeStatus) setStatus(`Could not load route options: ${error.message}`, true);
+        if (routeGrid) routeGrid.textContent = `Route suggestions are unavailable: ${error.message}`;
+        originSelect.disabled = true;
+        destinationSelect.disabled = true;
+        submitButton.disabled = true;
+      }
+    };
+
+    routeForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!routeForm.reportValidity()) return;
+      if (originSelect.value.toLowerCase() === destinationSelect.value.toLowerCase()) {
+        setStatus('Choose two different cities.', true);
+        destinationSelect.focus();
+        return;
+      }
+      const params = new URLSearchParams({
+        origin: originSelect.value,
+        destination: destinationSelect.value,
+        date: dateField.value,
+      });
+      location.assign(`/app/?${params.toString()}`);
+    });
+
+    const swap = routeForm.querySelector('[data-route-swap]');
+    if (swap) {
+      swap.addEventListener('click', () => {
+        const origin = originSelect.value;
+        const destination = destinationSelect.value;
+        if (!origins.includes(destination) || !destinations.includes(origin)) {
+          setStatus('The reverse route is not configured. Choose a different route.', true);
+          return;
+        }
+        originSelect.value = destination;
+        destinationSelect.value = origin;
+        setStatus('Route directions swapped.');
+      });
+    }
+
+    loadRouteOptions();
+  }
+
   const routeQuery = new URLSearchParams(location.search);
   ['from', 'to', 'date'].forEach((name) => {
     const target = document.querySelector(`[data-query="${name}"]`);

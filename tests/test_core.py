@@ -27,7 +27,7 @@ from app.db.seed import seed_if_empty
 from app.main import app
 from app.realtime.manager import manager
 from app.security.middleware import _content_security_policy
-from app.security.signing import sign_ticket_payload, verify_ticket_token
+from app.security.signing import hash_password, sign_ticket_payload, verify_password, verify_ticket_token
 
 
 @pytest.fixture(scope="module")
@@ -51,6 +51,40 @@ def test_public_config_exposes_optional_maps_browser_key(client):
     response = client.get("/api/config")
     assert response.status_code == 200
     assert isinstance(response.json()["google_maps_api_key"], str)
+    assert isinstance(response.json()["backup_export_enabled"], bool)
+
+
+def test_public_demo_cannot_export_database_backups(client, monkeypatch):
+    demo_settings = Settings(_env_file=None, demo_mode=True, demo_instance=True)
+    monkeypatch.setattr("app.main.get_settings", lambda: demo_settings)
+    monkeypatch.setattr("app.api.reports.get_settings", lambda: demo_settings)
+
+    config = client.get("/api/config")
+    assert config.status_code == 200
+    assert config.json()["backup_export_enabled"] is False
+
+    login = client.post("/api/auth/demo-login", json={"role": "operator"}, headers=_headers(client))
+    assert login.status_code == 200
+    headers = {"X-CSRF-Token": login.json()["csrf"]}
+    assert client.post("/api/reports/backup", headers=headers).status_code == 403
+    assert client.get("/api/reports/backup/download").status_code == 403
+
+
+def test_landing_page_offers_backend_route_search(client):
+    page = client.get("/")
+    assert page.status_code == 200
+    assert 'data-route-search' in page.text
+    assert 'data-route-origin' in page.text
+    assert 'data-route-destination' in page.text
+    assert 'src="/js/api.js"' in page.text
+    assert client.get("/js/demo.js").status_code == 200
+
+
+def test_reference_image_route_serves_only_allowlisted_assets(client):
+    image = client.get("/screens/2nd%20page.jpg")
+    assert image.status_code == 200
+    assert image.headers["content-type"].startswith("image/jpeg")
+    assert client.get("/screens/.env").status_code == 404
 
 
 def test_route_map_pages_and_assets_are_served(client):
@@ -66,6 +100,37 @@ def test_route_map_pages_and_assets_are_served(client):
     assert "TURA | Route map" in page
     assert "API_HERE" not in page
     assert "Mengo Senior School" not in page
+
+
+def test_service_worker_preloads_public_pages_and_supports_offline_navigation(client):
+    response = client.get("/sw.js")
+    assert response.status_code == 200
+    assert "`${CACHE_PREFIX}v12`" in response.text
+    for path in ("/app/", "/manifest.webmanifest", "/css/tura.css", "/js/store.js", "/js/app.js"):
+        assert f"'{path}'" in response.text
+        assert client.get(path).status_code == 200
+    assert "event.request.mode === 'navigate'" in response.text
+    assert "cache.match('/app/')" in response.text
+
+
+def test_pwa_manifest_has_install_icons_and_app_entry(client):
+    manifest_response = client.get("/manifest.webmanifest")
+    assert manifest_response.status_code == 200
+    manifest = manifest_response.json()
+    assert manifest["start_url"] == "/app/"
+    assert manifest["display"] == "standalone"
+    icon_sizes = {icon["sizes"] for icon in manifest["icons"]}
+    assert {"192x192", "512x512"} <= icon_sizes
+    for icon in manifest["icons"]:
+        response = client.get(icon["src"])
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("image/png")
+    apple_icon = client.get("/assets/pwa-icon-180.png")
+    assert apple_icon.status_code == 200
+    assert apple_icon.headers["content-type"].startswith("image/png")
+    assert apple_icon.content[16:24] == (180).to_bytes(4, "big") * 2
+    app_page = client.get("/app/")
+    assert 'rel="apple-touch-icon"' in app_page.text
 
 
 def test_map_widget_uses_routes_library_instead_of_legacy_directions(client):
@@ -142,6 +207,14 @@ def test_ticket_hmac_roundtrip():
     bad = token[:-4] + "xxxx"
     ok2, _, reason2 = verify_ticket_token(bad)
     assert not ok2
+
+
+def test_password_hashing_verifies_correct_password_only():
+    encoded = hash_password("TuraPassphrase2026")
+    assert encoded.startswith("$2")
+    assert verify_password("TuraPassphrase2026", encoded)
+    assert not verify_password("wrong password", encoded)
+    assert not verify_password("password", "not-a-bcrypt-hash")
 
 
 def test_search_and_full_booking_flow(client):
@@ -348,8 +421,8 @@ def test_websocket_requires_auth_and_rejects_customer_ops_room(client):
     operator_id = operator.json()["user"]["id"]
     with client.websocket_connect(f"/ws?rooms=ops&user_id={customer_id}") as websocket:
         assert json.loads(websocket.receive_text())["event"] == "connected"
-        assert websocket in manager.user_sockets[operator_id]
-        assert websocket not in manager.user_sockets.get(customer_id, set())
+        assert len(manager.user_sockets[operator_id]) == 1
+        assert customer_id not in manager.user_sockets
 
 
 def test_driver_cannot_operate_unassigned_trip(client):

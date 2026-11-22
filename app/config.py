@@ -51,7 +51,11 @@ class Settings(BaseSettings):
     google_maps_api_key: str = ""
     session_cookie_secure: bool = False
     session_cookie_samesite: str = "lax"
+    trust_proxy: bool = False
     rate_limit_per_minute: int = 60
+    auth_rate_limit_per_minute: int = 10
+    login_max_failures: int = 5
+    login_lockout_seconds: int = 900
     seat_lock_seconds: int = 120
     ticket_validity_hours: int = 72
     demo_mode: bool = True

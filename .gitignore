@@ -51,6 +51,14 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Local SQLite databases and WAL sidecars
+data/*.db
+data/*.db-shm
+data/*.db-wal
+app/data/*.db
+app/data/*.db-shm
+app/data/*.db-wal
+
 # Translations
 *.mo
 *.pot

@@ -10,19 +10,22 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-from passlib.context import CryptContext
+import bcrypt
 
 from app.config import get_settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password[:72])
+    password_bytes = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("ascii")
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return pwd_context.verify(password[:72], password_hash)
+    password_bytes = password.encode("utf-8")[:72]
+    try:
+        return bcrypt.checkpw(password_bytes, password_hash.encode("ascii"))
+    except (TypeError, ValueError):
+        return False
 
 
 def generate_token(nbytes: int = 32) -> str:
